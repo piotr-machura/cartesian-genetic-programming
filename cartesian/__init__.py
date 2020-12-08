@@ -9,21 +9,21 @@ from specimen import RawSpecimen, Specimen
 
 
 def evolve(fn_tab, fit_fn, inp, out, **kwargs):
-    """Return instance of Specimen best fit to `fit_fn` after `gen` generations.
+    """Evolve a `Specimen` according to the provided fit function.
 
     Args:
         fn_tab (tuple) : lookup table of functions to compose specimen from.
         fit_fn (callable) : function evaluating fit from phenotype.
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
-        **kwargs : optional keyword arguments.
+        **kwargs : optional keyword arguments :
             fit (float) : desired fit (default 1).
             gen (int) : number of generations (default 100).
             pop_size (int) : per-generation population size (defalut 100).
             dna_len (int) : number of nodes in a specimens genome (default 100).
             mutation_p (float) : probability of mutation (default 0.01).
     Returns:
-        Specimen: the specimen with desired fit OR best after `gen` generations.
+        A `Specimen` with desired fit OR the best fit after `gen` generations.
     """
 
     fit = kwargs['fit'] or 1
@@ -76,5 +76,6 @@ def decode_genotype(specimen, fn_tab):
     Returns:
         Phenotype of the specimen, ready to be used.
     """
-    phenotype = None    # <--- FIXME: actually contruct the pheontype
+    # TODO: Construct the phenotype
+    phenotype = None
     return phenotype
