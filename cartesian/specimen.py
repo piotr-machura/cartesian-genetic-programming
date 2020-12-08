@@ -22,7 +22,7 @@ class RawSpecimen():
 
     Attributes:
         genotype (list) : array of integers used to construct the phenotype.
-        node_len (int) : length of a single node in the genome.
+        node_size (int) : length of a single node in the genome.
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
     """

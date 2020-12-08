@@ -26,11 +26,11 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
         A `Specimen` with desired fit OR the best fit after `gen` generations.
     """
 
-    fit = kwargs['fit'] or 1
-    gen = kwargs['gen'] or 100
-    pop_size = kwargs['pop_size'] or 100
-    dna_len = kwargs['dna_len'] or 100
-    mutation_p = kwargs['mutation_p'] or 0.01
+    fit = kwargs.get('fit', 1)
+    gen = kwargs.get('gen', 100)
+    pop_size = kwargs.get('pop_size', 100)
+    dna_len = kwargs.get('dna_len', 100)
+    mutation_p = kwargs.get('mutation_p', 0.01)
 
     # Size of a single node is the maximum amount of args taken by functions
     # from fn_tab + 1 'which function am I' gene
