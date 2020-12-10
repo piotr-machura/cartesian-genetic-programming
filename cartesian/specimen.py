@@ -4,13 +4,13 @@ This module contains the class `Specimen` returned to the user after the
 evolution concludes as well as the `RawSpecimen` used for the internal
 evolutionary algorithm.
 
-The field `phenotype` of `Specimen` is of greatest interest for the end user.
+The method `outputs` of `Specimen` is of greatest interest for the end user.
 """
 
 from copy import deepcopy as copy
 from random import randint, random
 
-from cartesian import decode_genotype
+from cartesian import decode_cgp
 
 
 class RawSpecimen():
@@ -77,7 +77,6 @@ class Specimen(RawSpecimen):
         node_size (int) : length of a single node in the genome.
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
-        phenotype (object) : the phenotype of the specimen.
     """
     def __init__(self, raw, fn_tab):
         """Create an instance of usable `Specimen` from a raw one.
@@ -90,8 +89,11 @@ class Specimen(RawSpecimen):
             raw.inp,
             raw.out,
             raw.node_size,
-            None,    # <--- We want an empty genotype
+            None,    # <--- Do not bother contructing a genotype
             raw.fns)
         self.genotype = raw.genotype.copy()
         self.fn_tab_size = len(fn_tab)
-        self.phenotype = decode_genotype(self, fn_tab)
+        self.fn_tab = fn_tab
+
+    def outputs(self, inputs):
+        return decode_cgp(self, self.fn_tab, inputs)

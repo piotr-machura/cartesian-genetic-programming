@@ -16,8 +16,8 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
         fit_fn (callable) : function evaluating fit from phenotype.
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
-        **kwargs : optional keyword arguments :
-            fit (float) : desired fit (default 1).
+        **kwargs : optional keyword arguments:
+            desired_fit (float) : terminate evolution if fit >= (default None).
             gen (int) : number of generations (default 100).
             pop_size (int) : per-generation population size (defalut 100).
             dna_len (int) : number of nodes in a specimens genome (default 100).
@@ -26,7 +26,7 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
         A `Specimen` with desired fit OR the best fit after `gen` generations.
     """
 
-    fit = kwargs.get('fit', 1)
+    desired_fit = kwargs.get('desired_fit', None)
     gen = kwargs.get('gen', 100)
     pop_size = kwargs.get('pop_size', 100)
     dna_len = kwargs.get('dna_len', 100)
@@ -50,13 +50,12 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
 
         # Find a specimen as (or more) fit as the current parent
         for specimen in population:
-            sp_phenotype = decode_genotype(specimen, fn_tab)
-            sp_fit = fit_fn(sp_phenotype)
+            sp_fit = fit_fn(specimen)
             if sp_fit >= parent_fit:
                 parent_fit = sp_fit
                 parent = specimen
             # If the desired fit has been acheived we can terminate
-            if parent_fit >= fit:
+            if desired_fit is not None and parent_fit >= desired_fit:
                 return Specimen(parent, fn_tab)
 
         # Recreate the population using the new parent
@@ -66,16 +65,17 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
     return Specimen(parent, fn_tab)
 
 
-def decode_genotype(specimen, fn_tab):
-    """Decode the genotype into a usable phenotype.
+def decode_cgp(specimen, fn_tab, inputs):
+    """Decode the genotype and generate output from input.
 
     Args:
         specimen (RawSpecimen) : specmen with a genotype to decode.
         fn_tab (tuple) : function lookup table used to decode a genotype.
+        inputs (tuple) : list
 
     Returns:
-        Phenotype of the specimen, ready to be used.
+        Outputs of the specimen.
     """
-    # TODO: Construct the phenotype
-    phenotype = None
-    return phenotype
+    # TODO: Construct the outputs
+    outputs = None
+    return outputs
