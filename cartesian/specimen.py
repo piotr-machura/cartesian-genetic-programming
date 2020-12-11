@@ -5,12 +5,13 @@ evolution concludes as well as the `RawSpecimen` used for the internal
 evolutionary algorithm.
 
 The method `outputs` of `Specimen` is of greatest interest for the end user.
+
+The functions `gen_outputs` and `mutate` are not class methods to save on memory
+in the case of very large populations.
 """
 
 from copy import deepcopy as copy
 from random import randint, random
-
-from cartesian import decode_cgp
 
 
 class RawSpecimen():
@@ -26,43 +27,27 @@ class RawSpecimen():
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
     """
-    def __init__(self, inp, out, node_size, dna_len, fn_tab_size):
-        """Create a `Raw Specimen` with random genotype.
+    def __init__(self, inp, out, node_size, n_of_nodes, fn_tab_size):
+        """Create a `RawSpecimen` with random genotype.
 
         Args:
             inp (int) : number of input values taken by a specimen.
             out (int) : number of output values produced by a specimen.
             node_size (int) : size of a single node.
-            dna_len (int) : number of nodes. Leave empty genotype if `None`.
+            n_of_nodes (int) : number of nodes. Leave empty genotype if `None`.
             fn_tab_size (int) : size of function lookup table.
         """
-
         self.inp = inp
         self.out = out
         self.fns = fn_tab_size
         self.node_size = node_size
         self.genotype = list()
-        if dna_len is None:
+        if n_of_nodes is None:
             # This means we want an empty genotype and will fill it later
             return
         # TODO: Actually build a genotype
-        self.genotype = [randint(0, 10) for _ in range(dna_len * node_size)]
+        self.genotype = [randint(0, 10) for _ in range(n_of_nodes * node_size)]
 
-    def mutate(self, mutation_p):
-        """Mutate into an offspring instance of `RawSpecimen`.
-
-        Args:
-            mutation_p (float) : probability of mutating a given gene.
-
-        Returns:
-            Offspring, a correctly mutated instance of `RawSpecimen`.
-        """
-        offspring = copy(self)
-        for gene in offspring.genotype:
-            if random() <= mutation_p:
-                # TODO: Actually mutate
-                gene += 1
-        return offspring
 
 
 class Specimen(RawSpecimen):
@@ -96,4 +81,45 @@ class Specimen(RawSpecimen):
         self.fn_tab = fn_tab
 
     def outputs(self, inputs):
-        return decode_cgp(self, self.fn_tab, inputs)
+        """Return outputs of `Specimen` from provided inputs.
+
+        This is a convinience method. Calls `decode_cgp` using  `self` and
+        `self.fn_tab`, returning the outputs.
+
+        Args:
+            inputs (tuple) : input values to use in `decode_cgp`.
+        """
+        return gen_outputs(self, self.fn_tab, inputs)
+
+
+def gen_outputs(specimen, fn_tab, inputs):
+    """Decode the genotype and generate output from input.
+
+    Args:
+        specimen (RawSpecimen) : specimen with a genotype to decode.
+        fn_tab (tuple) : function lookup table used to decode a genotype.
+        inputs (tuple) : input values from which outputs are obtained.
+
+    Returns:
+        Outputs of the specimen.
+    """
+    # TODO: Construct the outputs
+    outputs = None
+    return outputs
+
+def mutate(specimen, mutation_p):
+    """Mutate into an offspring instance of `RawSpecimen`.
+
+    Args:
+        specimen (RawSpecimen) : specimen to mutate.
+        mutation_p (float) : probability of mutating a given gene.
+
+    Returns:
+        Offspring, a correctly mutated instance of `RawSpecimen`.
+    """
+    offspring = copy(specimen)
+    for gene in offspring.genotype:
+        if random() <= mutation_p:
+            # TODO: Actually mutate
+            gene += 1
+    return offspring

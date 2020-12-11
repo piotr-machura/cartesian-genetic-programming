@@ -61,6 +61,7 @@ confidence=
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
 disable=import-error,
+        cell-var-from-loop,
         no-else-raise,
         parameter-unpacking,
         unpacking-in-except,
@@ -518,7 +519,7 @@ max-returns=10
 max-statements=50
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=1
+min-public-methods=0
 
 
 [IMPORTS]
