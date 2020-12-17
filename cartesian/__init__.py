@@ -3,7 +3,6 @@
 The main interface is the `evolve` function which returns an instance of
 `Specimen` best fit to a given fit function.
 """
-
 from inspect import signature
 from specimen import RawSpecimen, Specimen, gen_outputs, mutate
 
@@ -50,7 +49,7 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
 
     # Create a random population
     population = [
-        RawSpecimen(inp, out, node_size, n_of_nodes, len(fn_tab))
+        RawSpecimen(inp, out, node_size, n_of_nodes, fn_tab)
         for _ in range(pop_size)
     ]
 
@@ -72,7 +71,9 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
             if desired_fit is not None and parent_fit >= desired_fit:
                 return Specimen(parent, fn_tab)
         # Recreate the population by mutating the new parent
-        population = [mutate(parent, mutation_p) for _ in range(pop_size)]
+        population = [
+            mutate(parent, mutation_p, fn_tab) for _ in range(pop_size)
+        ]
 
-    # Return what we achieved by evolving
+    # Return the best we achieved by evolving
     return Specimen(parent, fn_tab)

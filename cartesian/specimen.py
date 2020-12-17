@@ -9,9 +9,9 @@ The method `outputs` of `Specimen` is of greatest interest for the end user.
 The functions `gen_outputs` and `mutate` are not class methods to save on memory
 in the case of very large populations.
 """
-
 from copy import deepcopy as copy
 from random import randint, random
+from inspect import signature
 
 
 class RawSpecimen():
@@ -26,8 +26,10 @@ class RawSpecimen():
         node_size (int) : length of a single node in the genome.
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
+        active_nodes (list) : array with adresses of nodes connected to outputs.
+        fns (int) : number of functions in a lookup table.
     """
-    def __init__(self, inp, out, node_size, n_of_nodes, fn_tab_size):
+    def __init__(self, inp, out, node_size, n_of_nodes, fn_tab):
         """Create a `RawSpecimen` with random genotype.
 
         Args:
@@ -35,11 +37,11 @@ class RawSpecimen():
             out (int) : number of output values produced by a specimen.
             node_size (int) : size of a single node.
             n_of_nodes (int) : number of nodes. Leave empty genotype if `None`.
-            fn_tab_size (int) : size of function lookup table.
+            fn_tab (tuple) : function lookup table.
         """
         self.inp = inp
         self.out = out
-        self.fns = fn_tab_size
+        self.fns = len(fn_tab)
         self.node_size = node_size
         self.genotype = list()
         if n_of_nodes is None:
@@ -47,7 +49,8 @@ class RawSpecimen():
             return
         # TODO: Actually build a genotype
         self.genotype = [randint(0, 10) for _ in range(n_of_nodes * node_size)]
-
+        # TODO: Replace this with @property
+        self.active_nodes = _get_active_nodes(self, fn_tab)
 
 
 class Specimen(RawSpecimen):
@@ -62,6 +65,7 @@ class Specimen(RawSpecimen):
         node_size (int) : length of a single node in the genome.
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
+        active_nodes (list) : array with adresses of nodes connected to outputs.
     """
     def __init__(self, raw, fn_tab):
         """Create an instance of usable `Specimen` from a raw one.
@@ -77,7 +81,7 @@ class Specimen(RawSpecimen):
             None,    # <--- Do not bother contructing a genotype
             raw.fns)
         self.genotype = raw.genotype.copy()
-        self.fn_tab_size = len(fn_tab)
+        self.fns = len(fn_tab)
         self.fn_tab = fn_tab
 
     def outputs(self, inputs):
@@ -107,7 +111,8 @@ def gen_outputs(specimen, fn_tab, inputs):
     outputs = None
     return outputs
 
-def mutate(specimen, mutation_p):
+
+def mutate(specimen, mutation_p, fn_tab):
     """Mutate into an offspring instance of `RawSpecimen`.
 
     Args:
@@ -122,4 +127,45 @@ def mutate(specimen, mutation_p):
         if random() <= mutation_p:
             # TODO: Actually mutate
             gene += 1
+    offspring.active_nodes = _get_active_nodes(offspring, fn_tab)
     return offspring
+
+
+def _get_active_nodes(specimen, fn_tab):
+    """Get active nodes in a given genotype.
+
+    Args:
+        specimen (RawSpecimen) : specimen with the genotype to process.
+
+    Returns:
+        List with node indexes of active nodes. Note that theese are **NODE**
+        indexes, eg. 4th node, 5th node etc., **NOT** the indexes in the
+        genotype itself.
+    """
+    genotype_size = len(specimen.genotype)
+    total_nodes = specimen.inp + specimen.node_size + specimen.out
+    # Mark all nodes as inactive
+    active_nodes = [False for _ in range(genotype_size)]
+
+    # Activate outputs
+    for out_index in range(genotype_size - specimen.out):
+        active_nodes[out_index] = True
+    # Iterate over all the actual nodes from end to beggining
+    for node_indx in range(specimen.inp, total_nodes, -1):
+        if active_nodes[node_indx]:    # Current node is active
+            node_start = specimen.node_size * (node_indx - specimen.inp)
+            node_end = node_start + specimen.node_size
+            # Current node is the slice of genotype from node_start to node_end
+            current_node = specimen.genotype[node_start:node_end]
+            # Calculate how many inputs current node actually needs
+            required_nodes = len(signature(fn_tab(current_node[-1])))
+            for input_gene in current_node[0:required_nodes]:
+                # Mark this many nodes as active
+                active_nodes[input_gene] = True
+
+    # Build an array with node indexes considered active
+    active_node_indxs = [
+        node_indx for node_indx in range(specimen.inp, total_nodes, -1)
+        if active_nodes[node_indx]
+    ]
+    return active_node_indxs
