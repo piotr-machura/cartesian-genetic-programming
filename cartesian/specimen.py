@@ -143,9 +143,9 @@ def _get_active_nodes(specimen, fn_tab):
         genotype itself.
     """
     genotype_size = len(specimen.genotype)
-    total_nodes = specimen.inp + specimen.node_size + specimen.out
+    total_nodes = specimen.inp + (genotype_size - specimen.out) / specimen.node_size + specimen.out
     # Mark all nodes as inactive
-    active_nodes = [False for _ in range(genotype_size)]
+    active_nodes = [False for _ in range(total_nodes)]
 
     # Activate outputs
     for out_index in range(genotype_size - specimen.out, genotype_size):
