@@ -148,10 +148,10 @@ def _get_active_nodes(specimen, fn_tab):
     active_nodes = [False for _ in range(genotype_size)]
 
     # Activate outputs
-    for out_index in range(genotype_size - specimen.out):
+    for out_index in range(genotype_size - specimen.out, genotype_size):
         active_nodes[out_index] = True
-    # Iterate over all the actual nodes from end to beggining
-    for node_indx in range(specimen.inp, total_nodes, -1):
+    # Iterate over the nodes from end to start of input nodes
+    for node_indx in range(total_nodes, specimen.inp, -1):
         if active_nodes[node_indx]:    # Current node is active
             node_start = specimen.node_size * (node_indx - specimen.inp)
             node_end = node_start + specimen.node_size
@@ -163,9 +163,8 @@ def _get_active_nodes(specimen, fn_tab):
                 # Mark this many nodes as active
                 active_nodes[input_gene] = True
 
-    # Build an array with node indexes considered active
-    active_node_indxs = [
-        node_indx for node_indx in range(specimen.inp, total_nodes, -1)
+    # Return an array with node indexes considered active
+    return [
+        node_indx for node_indx in range(specimen.inp, total_nodes)
         if active_nodes[node_indx]
     ]
-    return active_node_indxs
