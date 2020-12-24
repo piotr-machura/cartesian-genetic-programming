@@ -40,8 +40,13 @@ class Node:
             Output of `inner_fn` OR the `args` if `inner_fn` is `None`.`
         """
         args = list()
-        # Gather all data for inner function
-        for i in self.input_adresses:
+        # Only take as many args as the function needs
+        if self.inner_fn is not None:
+            # TODO: the new OutputNode class should fix this mess
+            needed = len(signature(self.inner_fn).parameters)
+        else:
+            needed = len(self.input_adresses)
+        for i in self.input_adresses[:needed]:
             if i >= len(self.parent.inp):    # Take arguments from other nodes
                 genotype_i = i - self.parent.inp    # Offset the index
                 # Recursively get the arguments
@@ -50,8 +55,6 @@ class Node:
                 args.append(g_inp[i])
         if self.inner_fn is None:
             return args
-        # Only take as many args as the function needs
-        args = args[:len(signature(self.inner_fn).parameters)]
         return self.inner_fn(*args)
 
     def mutate(self, mutation_p):

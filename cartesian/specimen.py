@@ -33,7 +33,7 @@ class Specimen():
         self.out = out
         self.fn_tab = fn_tab
         # Size of a single node is the maximum amount of args taken by functions
-        # from fn_tab + a single 'which function am I' gene
+        # from fn_tab
         node_size = max(len(signature(fn).parameters) for fn in self.fn_tab)
         self.genotype = [
             Node(self, i + inp, node_size) for i in range(n_nodes)

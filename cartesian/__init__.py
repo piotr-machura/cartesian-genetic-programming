@@ -56,7 +56,7 @@ def evolve(fn_tab, fit_fn, inp, out, **kwargs):
         for specimen in population:
             # Provide a callable generating outputs from inputs and feed it to
             # the user's fit function
-            sp_fit = fit_fn(lambda x: specimen.outputs(x))
+            sp_fit = fit_fn(specimen.outputs)
             if parent_fit is None or parent_fit <= sp_fit:
                 parent_fit = sp_fit
                 parent = specimen
