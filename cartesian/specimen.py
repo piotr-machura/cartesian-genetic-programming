@@ -8,9 +8,11 @@ The method `outputs` of `Specimen` is of greatest interest for the end user.
 from copy import deepcopy as copy
 from inspect import signature
 from node import Node
+from random import sample, random
 
 
 class Specimen():
+    # TODO: a contructor that takes a genome string so that we can load an existing specimen
     """The class `Specimen` used during the evolutionary process.
 
     To obtain the outputs use the method `outputs`.
@@ -21,26 +23,31 @@ class Specimen():
         out (int) : number of output values produced by a specimen.
         fn_tab (tuple) : function lookup table.
     """
-    def __init__(self, inp, out, n_nodes, fn_tab):
+
+    def __init__(self, inputs_num, outputs_num, nodes_num, function_table, mutation_prob, mutation_num):
         """Create a `Specimen` with random genotype.
 
         Args:
-            inp (int) : number of input values taken by a specimen.
+            inputs (int) : number of input values taken by a specimen.
             out (int) : number of output values produced by a specimen.
             fn_tab (tuple) : function lookup table.
+            mutation_prob (float) : probability of a applying the mutation operator to a gene.
+            mutation_num (int) : number of genes that can be mutated in a singe application of the mutation operator.
         """
-        self.inp = inp
-        self.out = out
-        self.fn_tab = fn_tab
+        self.inputs = inputs_num
+        self.outputs = outputs_num
+        self.function_table = function_table
+        self.mutation_prob = mutation_prob
         # Size of a single node is the maximum amount of args taken by functions
         # from fn_tab
-        node_size = max(len(signature(fn).parameters) for fn in self.fn_tab)
+        node_size = max(len(signature(function).parameters)
+                        for function in self.functions_tables)
         self.genotype = [
-            Node(self, i + inp, node_size) for i in range(n_nodes)
+            Node(self, i + inputs_num, node_size) for i in range(nodes_num)
         ]
         # Add output nodes to the end
         self.genotype += [
-            Node(self, i, 1, True) for i in range(n_nodes, n_nodes + self.out)
+            Node(self, i, 1, True) for i in range(nodes_num, nodes_num + self.out)
         ]
 
     def outputs(self, inputs):
@@ -56,16 +63,14 @@ class Specimen():
         outputs = None
         return outputs
 
-    def mutate(self, mutation_p):
+    def mutate(self):
         """Mutate into an offspring instance of `Specimen`.
-
-        Args:
-            mutation_p (float) : probability of mutating a given gene.
-
         Returns:
             Offspring, a correctly mutated instance of `Specimen`.
         """
+
         offspring = copy(self)
-        for node in offspring.genotype:
-            node.mutate(mutation_p)
+        for node in sample(offspring.genotype):
+            if random() < offspring.mutation_prob:
+                node.mutate()
         return offspring
