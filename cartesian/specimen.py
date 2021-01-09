@@ -6,7 +6,7 @@ algorithm and returned to the user after the evolution concludes.
 The method `outputs` of `Specimen` is of greatest interest for the end user.
 """
 from copy import deepcopy as copy
-from inspect import signature
+from inspect import isfunction, signature
 from node import Node
 from random import sample, random
 
@@ -28,16 +28,28 @@ class Specimen():
         """Create a `Specimen` with random genotype.
 
         Args:
-            inputs (int) : number of input values taken by a specimen.
-            out (int) : number of output values produced by a specimen.
-            fn_tab (tuple) : function lookup table.
+            inputs_num (int) : number of input values taken by a specimen.
+            outputs_num (int) : number of output values produced by a specimen.
+            nodes_num (int) : number of nodes to generate.
+            function_table (tuple) : function lookup table.
             mutation_prob (float) : probability of a applying the mutation operator to a gene.
             mutation_num (int) : number of genes that can be mutated in a singe application of the mutation operator.
         """
-        self.inputs = inputs_num
-        self.outputs = outputs_num
+        # TODO: implement exceptions
+        if inputs_num < 1 or outputs_num < 1 or nodes_num < 1:
+            raise Exception
+        self.inputs_num = inputs_num
+        self.outputs_num = outputs_num
+        for function in function_table:
+            if not (isfunction(function) or type(function) == type(print)):
+                raise Exception
         self.function_table = function_table
+        if mutation_prob > 1:
+            raise Exception
         self.mutation_prob = mutation_prob
+        if mutation_num > nodes_num:
+            raise Exception
+        self.mutation_num = mutation_num
         # Size of a single node is the maximum amount of args taken by functions
         # from fn_tab
         node_size = max(len(signature(function).parameters)
@@ -47,7 +59,7 @@ class Specimen():
         ]
         # Add output nodes to the end
         self.genotype += [
-            Node(self, i, 1, True) for i in range(nodes_num, nodes_num + self.out)
+            Node(self, i, 1, True) for i in range(nodes_num, nodes_num + self.outputs_num)
         ]
 
     def outputs(self, inputs):
