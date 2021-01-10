@@ -42,20 +42,21 @@ class Node:
         args = list()
         # Only take as many args as the function needs
         needed = len(signature(self.inner_function).parameters)
-        for i in self.input_addresses[:needed]:
-            if i >= len(self.parent.inputs):    # Take arguments from other nodes
-                genotype_index = i - self.parent.inputs    # Offset the index
+        for input_address in self.input_addresses[:needed]:
+            # Take arguments from other nodes
+            if input_address >= len(self.parent.inputs):
+                genotype_index = input_address - self.parent.inputs    # Offset the index
                 # Recursively get the arguments
                 args.append(
                     self.parent.genotype[genotype_index].calculate(global_inputs))
             else:    # Take arguments from global inputs
-                args.append(global_inputs[i])
+                args.append(global_inputs[input_address])
         if self.inner_function is None:
             return args
         return self.inner_function(*args)
 
     def mutate(self):
-        """Randomly change the 'input_addresses' and `innner_fn`.
+        """Randomly change the an input address or `innner_fn`.
         """
         if random() < 1/(len(self.input_addresses)):
             last_function = self.inner_function
@@ -67,28 +68,39 @@ class Node:
 
 
 class OutputNode(Node):
-    def __init__(self, parent, index, size):
+    def __init__(self, parent, index):
+        """The class `OutputNode` used as a container for the final output.
+
+        Attributes:
+            parent (Specimen) : the specimen to which the node belongs.
+            index (int) : index in the parent's genotype
+        """
         super().__init__(parent, index, 1)
 
     def calculate(self, global_inputs):
-        """
-        docstring
+        """Take input from `input_addresses` in 'parent.genotype'and return them.
+
+        Args:
+            global_inputs (tuple) : 'global' inputs from which outputs are obtained.
+
+        Returns:
+            Output of `inner_function` OR the `args` if `inner_function` is `None`.`
         """
         args = list()
         needed = len(self.input_addresses)
-        for input_address_index in self.input_addresses[:needed]:
+        for input_address in self.input_addresses[:needed]:
             # Take arguments from other nodes
-            if input_address_index >= len(self.parent.inputs):
-                genotype_index = input_address_index - self.parent.inputs    # Offset the index
+            if input_address >= len(self.parent.inputs):
+                genotype_index = input_address - self.parent.inputs    # Offset the index
                 # Recursively get the arguments
                 args.append(
                     self.parent.genotype[genotype_index].calculate(global_inputs))
             else:    # Take arguments from global inputs
-                args.append(global_inputs[input_address_index])
+                args.append(global_inputs[input_address])
         return args
 
     def mutate(self):
-        """Randomly change the 'input_addresses' and `innner_function`.
+        """Randomly change the an input address.
         """
         self.input_addresses[randrange(len(self.input_addresses))] = randint(
             0, self.index - 1)

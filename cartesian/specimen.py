@@ -7,7 +7,7 @@ The method `outputs` of `Specimen` is of greatest interest for the end user.
 """
 from copy import deepcopy as copy
 from inspect import isfunction, signature
-from node import Node
+from node import Node, OutputNode
 from random import sample, random
 
 
@@ -21,7 +21,7 @@ class Specimen():
         genotype (list) : array of nodes used to calculate the output.
         inp (int) : number of input values taken by a specimen.
         out (int) : number of output values produced by a specimen.
-        fn_tab (tuple) : function lookup table.
+        function_table (tuple) : function lookup table.
     """
 
     def __init__(self, inputs_num, outputs_num, nodes_num, function_table, mutation_prob, mutation_num):
@@ -53,13 +53,13 @@ class Specimen():
         # Size of a single node is the maximum amount of args taken by functions
         # from fn_tab
         node_size = max(len(signature(function).parameters)
-                        for function in self.functions_tables)
+                        for function in self.function_table)
         self.genotype = [
             Node(self, i + inputs_num, node_size) for i in range(nodes_num)
         ]
         # Add output nodes to the end
         self.genotype += [
-            Node(self, i, 1, True) for i in range(nodes_num, nodes_num + self.outputs_num)
+            OutputNode(self, i) for i in range(nodes_num, nodes_num + self.outputs_num)
         ]
 
     def outputs(self, inputs):
