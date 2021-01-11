@@ -63,7 +63,7 @@ def evolve(function_table, fit_function, inputs_num, outputs_num, **kwargs):
     if mutation_prob > 1 or mutation_prob < 0:
         raise ValueError('Probability of mutation must be (0, 1).')
     for function in function_table:
-        if not isfunction(function) or isinstance(function) == type(print):
+        if not isfunction(function) or type(function) == type(print):
             raise TypeError(f'Not a valid function: {function}.')
 
     # Create a random population

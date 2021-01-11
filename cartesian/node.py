@@ -17,6 +17,7 @@ class Node:
         parent (Specimen) : the specimen to which the node belongs.
         size (int) : amount of inputs this node accepts.
     """
+
     def __init__(self, parent, index, size):
         self.parent = parent
         self.inner_function = choice(parent.function_table)
@@ -60,6 +61,7 @@ class OutputNode(Node):
     Attributes:
         parent (Specimen) : the specimen to which the node belongs.
     """
+
     def __init__(self, index, parent):
         super().__init__(parent, index, 1)
 
@@ -92,6 +94,7 @@ class InputNode(Node):
         parent (Specimen) : the specimen to which the node belongs.
         input_index (int) : index of the program input.
     """
+
     def __init__(self, parent, index, input_index):
         super().__init__(parent, index, 0)
         self.input_index = input_index

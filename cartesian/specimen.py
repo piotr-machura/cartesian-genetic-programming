@@ -24,6 +24,7 @@ class Specimen():
         out (int) : number of output values produced by a specimen.
         function_table (tuple) : function lookup table.
     """
+
     def __init__(
         self,
         inputs_num,
