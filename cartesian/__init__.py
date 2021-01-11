@@ -6,7 +6,6 @@ The main interface is the `evolve` function which returns an instance of
 from inspect import signature
 from specimen import Specimen
 
-
 def evolve(fn_tab, fit_fn, inp, out, **kwargs):
     """Evolve a `Specimen` according to the provided fit function.
 
