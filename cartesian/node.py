@@ -18,12 +18,13 @@ class Node:
         size (int) : amount of inputs this node accepts.
     """
 
-    def __init__(self, parent, size):
+    def __init__(self, parent, index, size):
         self.parent = parent
         # TODO: make a standalone OutputNode class
         self.inner_function = choice(parent.function_table)
+        self.index = index
         # Inputs can only be in front of the current node
-        self.input_addresses = [randint(0, parent.genotype.index(self))
+        self.input_addresses = [randint(0, index - 1)
                                 for _ in range(size)]
 
     def calculate(self):
@@ -54,17 +55,17 @@ class Node:
                 self.inner_function = choice(self.parent.function_table)
         else:
             self.input_addresses[randrange(len(self.input_addresses))] = randint(
-                0, self.parent.genotype.index(self))
+                0, self.index - 1)
 
 
 class OutputNode(Node):
-    def __init__(self, parent):
+    def __init__(self, index, parent):
         """The class `OutputNode` is used as a container for the final output.
 
         Attributes:
             parent (Specimen) : the specimen to which the node belongs.
         """
-        super().__init__(parent, 1)
+        super().__init__(parent, index, 1)
 
     def calculate(self):
         """Take input from `input_addresses` in 'parent.genotype'and return them.
@@ -84,18 +85,18 @@ class OutputNode(Node):
         """Randomly change the an input address.
         """
         self.input_addresses[randrange(len(self.input_addresses))] = randint(
-            0, self.parent.genotype.index(self))
+            0, self.index - 1)
 
 
 class InputNode(Node):
-    def __init__(self, parent, input_index):
+    def __init__(self, parent, index, input_index):
         """The class `InputNode` is used as a container for the initial program input.
 
         Attributes:
             parent (Specimen) : the specimen to which the node belongs.
             input_index (int) : index of the program input.
         """
-        super().__init__(parent, 0)
+        super().__init__(parent, index, 0)
         self.input_index = input_index
 
     def calculate(self):

@@ -37,30 +37,32 @@ class Specimen():
         """
         # TODO: implement exceptions
         if inputs_num < 1 or outputs_num < 1 or nodes_num < 1:
-            raise Exception
+            raise Exception("Wrong number of inputs and/or outputs.")
         for function in function_table:
             if not (isfunction(function) or type(function) == type(print)):
                 raise Exception
         self.function_table = function_table
-        if mutation_prob > 1:
-            raise Exception
+        if mutation_prob > 1 or mutation_prob < 0:
+            raise Exception(
+                "Probability of mutation must not be higher that\n 1 or lower than 0.")
         self.mutation_prob = mutation_prob
         if mutation_num > nodes_num:
-            raise Exception
+            raise Exception(
+                "There cannot be more mutations than there are nodes.")
         self.mutation_num = mutation_num
         # Size of a single node is the maximum amount of args taken by functions
         # from fn_tab
         node_size = max(len(signature(function).parameters)
                         for function in self.function_table)
 
-        self.genotype = [InputNode(self, i) for i in range(inputs_num)]
+        self.genotype = [InputNode(self, i, i) for i in range(inputs_num)]
 
         self.genotype += [
-            Node(self, node_size) for _ in range(nodes_num)
+            Node(self, i, node_size) for i in range(nodes_num)
         ]
         # Add output nodes to the end
         self.genotype += [
-            OutputNode(self) for _ in range(outputs_num)
+            OutputNode(self, i) for i in range(outputs_num)
         ]
 
     def outputs(self, inputs):
