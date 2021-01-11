@@ -51,7 +51,7 @@ class Node:
         """
         if random() < 1/(len(self.input_addresses)):
             last_function = self.inner_function
-            while(self.inner_function == last_function):
+            while self.inner_function == last_function:
                 self.inner_function = choice(self.parent.function_table)
         else:
             self.input_addresses[randrange(len(self.input_addresses))] = randint(
