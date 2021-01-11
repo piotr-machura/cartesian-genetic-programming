@@ -55,21 +55,25 @@ class Specimen():
         self.function_table = function_table
         if mutation_prob > 1 or mutation_prob < 0:
             raise ValueError(
-                "Probability of mutation must not be higher that\n 1 or lower than 0.")
+                'Probability of mutation must not be higher that 1 or lower than 0.')
         self.mutation_prob = mutation_prob
         if mutation_num > nodes_num:
             raise ValueError('There cannot be more mutations than there are nodes.')
         self.mutation_num = mutation_num
         # Size of a single node is the maximum amount of args taken by functions
-<<<<<<< HEAD
         # from function_table
-        node_size = max(
-            len(signature(function).parameters)
-            for function in self.function_table)
-        # Create a random genotype
-        self.genotype = [InputNode(self, i) for i in range(inputs_num)]
-        self.genotype += [Node(self, node_size) for _ in range(nodes_num)]
-        self.genotype += [OutputNode(self) for _ in range(outputs_num)]
+        node_size = max(len(signature(function).parameters)
+                        for function in self.function_table)
+
+        self.genotype = [InputNode(self, i, i) for i in range(inputs_num)]
+
+        self.genotype += [
+            Node(self, i + inputs_num, node_size) for i in range(nodes_num)
+        ]
+        # Add output nodes to the end
+        self.genotype += [
+            OutputNode(self, i + inputs_num + outputs_num) for i in range(outputs_num)
+        ]
 
     def outputs(self, inputs):
         """Generate output from input.
