@@ -22,8 +22,7 @@ class Node:
         self.inner_function = choice(parent.function_table)
         self.index = index
         # Inputs can only be in front of the current node
-        self.input_addresses = [randint(0, index - 1)
-                                for _ in range(size)]
+        self.input_addresses = [randint(0, index - 1) for _ in range(size)]
 
     def calculate(self):
         """Take input from `input_addresses` in 'parent.genotype'and return the
@@ -51,32 +50,8 @@ class Node:
             while self.inner_function == last_function:
                 self.inner_function = choice(self.parent.function_table)
         else:
-            self.input_addresses[randrange(len(self.input_addresses))] = randint(
-                0, self.index - 1)
-
-
-class OutputNode(Node):
-    def __init__(self, index, parent):
-        """The class `OutputNode` is used as a container for the final output.
-
-        Attributes:
-            parent (Specimen) : the specimen to which the node belongs.
-        """
-        super().__init__(parent, index, 1)
-
-    def calculate(self):
-        """Take input from `input_addresses` in 'parent.genotype'and return them.
-
-        Returns:
-            Output of 'input_addresses'.
-        """
-        args = list()
-        needed = len(self.input_addresses)
-        for input_address in self.input_addresses[:needed]:
-            # Recursively get the arguments
-            args.append(
-                self.parent.genotype[input_address].calculate())
-        return args
+            self.input_addresses[randrange(len(
+                self.input_addresses))] = randint(0, self.index - 1)
 
 
 class OutputNode(Node):
@@ -117,7 +92,7 @@ class InputNode(Node):
         parent (Specimen) : the specimen to which the node belongs.
         input_index (int) : index of the program input.
     """
-    def __init__(self, parent, input_index):
+    def __init__(self, parent, index, input_index):
         super().__init__(parent, index, 0)
         self.input_index = input_index
 
