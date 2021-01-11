@@ -7,7 +7,7 @@ The method `outputs` of `Specimen` is of greatest interest for the end user.
 """
 from copy import deepcopy as copy
 from inspect import isfunction, signature
-from node import Node, OutputNode, InputNode
+from .node import Node, OutputNode, InputNode
 from random import sample, random
 
 
