@@ -17,14 +17,13 @@ class Node:
         parent (Specimen) : the specimen to which the node belongs.
         size (int) : amount of inputs this node accepts.
     """
-
     def __init__(self, parent, size):
         self.parent = parent
-        # TODO: make a standalone OutputNode class
         self.inner_function = choice(parent.function_table)
         # Inputs can only be in front of the current node
-        self.input_addresses = [randint(0, parent.genotype.index(self))
-                                for _ in range(size)]
+        self.input_addresses = [
+            randint(0, parent.genotype.index(self)) for _ in range(size)
+        ]
 
     def calculate(self):
         """Take input from `input_addresses` in 'parent.genotype'and return the
@@ -40,34 +39,35 @@ class Node:
         needed = len(signature(self.inner_function).parameters)
         for input_address in self.input_addresses[:needed]:
             # Recursively get the arguments
-            args.append(
-                self.parent.genotype[input_address].calculate())
+            args.append(self.parent.genotype[input_address].calculate())
 
         return self.inner_function(*args)
 
     def mutate(self):
         """Randomly change the an input address or `innner_fn`.
         """
-        if random() < 1/(len(self.input_addresses)):
+        if random() < 1 / (len(self.input_addresses)):
             last_function = self.inner_function
             while self.inner_function == last_function:
                 self.inner_function = choice(self.parent.function_table)
         else:
-            self.input_addresses[randrange(len(self.input_addresses))] = randint(
-                0, self.parent.genotype.index(self))
+            self.input_addresses[randrange(len(
+                self.input_addresses))] = randint(
+                    0, self.parent.genotype.index(self))
 
 
 class OutputNode(Node):
-    def __init__(self, parent):
-        """The class `OutputNode` is used as a container for the final output.
+    """The class `OutputNode` is used as a container for the final output.
 
-        Attributes:
-            parent (Specimen) : the specimen to which the node belongs.
-        """
+    Attributes:
+        parent (Specimen) : the specimen to which the node belongs.
+    """
+    def __init__(self, parent):
         super().__init__(parent, 1)
 
     def calculate(self):
-        """Take input from `input_addresses` in 'parent.genotype'and return them.
+        """Take input from `input_addresses` in 'parent.genotype'and return
+        them.
 
         Returns:
             Output of 'input_addresses'.
@@ -76,8 +76,7 @@ class OutputNode(Node):
         needed = len(self.input_addresses)
         for input_address in self.input_addresses[:needed]:
             # Recursively get the arguments
-            args.append(
-                self.parent.genotype[input_address].calculate())
+            args.append(self.parent.genotype[input_address].calculate())
         return args
 
     def mutate(self):
@@ -88,13 +87,14 @@ class OutputNode(Node):
 
 
 class InputNode(Node):
-    def __init__(self, parent, input_index):
-        """The class `InputNode` is used as a container for the initial program input.
+    """The class `InputNode` is used as a container for the initial program
+    input.
 
-        Attributes:
-            parent (Specimen) : the specimen to which the node belongs.
-            input_index (int) : index of the program input.
-        """
+    Attributes:
+        parent (Specimen) : the specimen to which the node belongs.
+        input_index (int) : index of the program input.
+    """
+    def __init__(self, parent, input_index):
         super().__init__(parent, 0)
         self.input_index = input_index
 

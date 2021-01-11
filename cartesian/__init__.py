@@ -6,11 +6,13 @@ The main interface is the `evolve` function which returns an instance of
 from inspect import signature
 from specimen import Specimen
 
+
 def evolve(function_table, fit_function, inputs_num, outputs, **kwargs):
     """Evolve a `Specimen` according to the provided fit function.
 
     Args:
-        function_table (tuple) : lookup table of functions to compose specimen from.
+        function_table (tuple) : lookup table of functions to compose specimen
+                                 from.
         fit_function (callable) : function evaluating fit, **see note below**.
         inputs_num (int) : number of input values taken by a specimen.
         outputs (int) : number of output values produced by a specimen.
@@ -19,14 +21,15 @@ def evolve(function_table, fit_function, inputs_num, outputs, **kwargs):
             generations_num(int) : number of generations (default 100).
             population_size (int) : per-generation population size (defalut 5).
             nodes_num (int) : number of nodes in the genome (default 100).
-            mutation_prob (float) : probability of mutation of a node (default 0.01).
-            mutation_num (int) : max number of nodes that can be mutated in a single mutation (default 1).
+            mutation_prob (float) : probability of mutation (default 0.01).
+            mutation_num (int) : max number of nodes that can be mutated in a
+                                 single generation (default 1).
 
     Returns:
         A `Specimen` with desired fit OR the best fit after `gen` generations.
 
-    **Note**: the `fit_function` should accept a `callable` as it's argument, and
-    utilize it like so:
+    **Note**: the `fit_function` should accept a `callable` as it's argument,
+    and utilize it like so:
     `
     def example_fit_function(get_outputs: callable): -> float
         inputs = ...
@@ -45,8 +48,16 @@ def evolve(function_table, fit_function, inputs_num, outputs, **kwargs):
     mutation_num = kwargs.get('mutation_num', 1)
 
     # Create a random population
-    population = [Specimen(inputs_num, outputs, nodes_num, function_table, mutation_prob, mutation_num)
-                  for _ in range(population_size)]
+    population = [
+        Specimen(
+            inputs_num,
+            outputs,
+            nodes_num,
+            function_table,
+            mutation_prob,
+            mutation_num,
+        ) for _ in range(population_size)
+    ]
 
     # No parent for now since we are just starting
     parent = None
@@ -66,8 +77,9 @@ def evolve(function_table, fit_function, inputs_num, outputs, **kwargs):
             if desired_fit is not None and parent_fit >= desired_fit:
                 return parent
         # Recreate the population by mutating the new parent
-        population = [parent.mutate(mutation_prob)
-                      for _ in range(population_size)]
+        population = [
+            parent.mutate(mutation_prob) for _ in range(population_size)
+        ]
 
     # Return the best we achieved by evolving
     return parent
