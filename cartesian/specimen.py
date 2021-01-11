@@ -58,11 +58,11 @@ class Specimen():
         self.genotype = [InputNode(self, i, i) for i in range(inputs_num)]
 
         self.genotype += [
-            Node(self, i, node_size) for i in range(nodes_num)
+            Node(self, i + inputs_num, node_size) for i in range(nodes_num)
         ]
         # Add output nodes to the end
         self.genotype += [
-            OutputNode(self, i) for i in range(outputs_num)
+            OutputNode(self, i + inputs_num + outputs_num) for i in range(outputs_num)
         ]
 
     def outputs(self, inputs):
