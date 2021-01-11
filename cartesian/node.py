@@ -17,7 +17,6 @@ class Node:
         parent (Specimen) : the specimen to which the node belongs.
         size (int) : amount of inputs this node accepts.
     """
-
     def __init__(self, parent, index, size):
         self.parent = parent
         self.inner_function = choice(parent.function_table)
@@ -44,7 +43,7 @@ class Node:
         return self.inner_function(*args)
 
     def mutate(self):
-        """Randomly change the an input address or `innner_fn`.
+        """Randomly change the an input address or `innner_function`.
         """
         if random() < 1 / (len(self.input_addresses)):
             last_function = self.inner_function
@@ -54,6 +53,23 @@ class Node:
             self.input_addresses[randrange(len(
                 self.input_addresses))] = randint(0, self.index - 1)
 
+    def to_raw(self):
+        """Encode into an array of integers for usage with `Specimen`'s
+        encoding method `to_raw()`.
+
+        Returns:
+            Array of integers encoded as follows:
+            [0] -> index of inner_function in the lookup table
+            [...] -> contents of input_adresses
+        """
+        raw = list()
+        for index, function in enumerate(self.parent.function_table):
+            if self.inner_function == function:
+                raw.append(index)
+        raw += self.input_addresses
+        return raw
+
+
 
 class OutputNode(Node):
     """The class `OutputNode` is used as a container for the final output.
@@ -61,8 +77,7 @@ class OutputNode(Node):
     Attributes:
         parent (Specimen) : the specimen to which the node belongs.
     """
-
-    def __init__(self, index, parent):
+    def __init__(self, parent, index):
         super().__init__(parent, index, 1)
 
     def calculate(self):
@@ -80,10 +95,19 @@ class OutputNode(Node):
         return args
 
     def mutate(self):
-        """Randomly change the an input address.
+        """Randomly change the input address.
         """
         self.input_addresses[randrange(len(self.input_addresses))] = randint(
             0, self.index - 1)
+
+    def to_raw(self):
+        """Encode into an array of integers for usage with `Specimen`'s
+        encoding method `to_raw()`.
+
+        Returns:
+            self.input_addresses (since there is no inner_function to encode)
+        """
+        return self.input_addresses
 
 
 class InputNode(Node):
@@ -94,13 +118,20 @@ class InputNode(Node):
         parent (Specimen) : the specimen to which the node belongs.
         input_index (int) : index of the program input.
     """
-
     def __init__(self, parent, index, input_index):
         super().__init__(parent, index, 0)
         self.input_index = input_index
 
     def calculate(self):
-        return self.parent.inputs[self.input_index]
+        """Take input from parent and pass them down."""
+        return self.parent._input_data[self.input_index]    #pylint: disable=protected-access
 
     def mutate(self):
         pass
+
+    def to_raw(self):
+        """Return an empty array since this type of node should not be included
+        in the array produced by `Specimen.to_raw()`.
+        encoding method `to_raw()`.
+        """
+        return list()

@@ -3,4 +3,3 @@ tags
 __pycache__
 .vscode
 genwindow.py
-.style.yapf
