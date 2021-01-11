@@ -7,7 +7,7 @@ The method `outputs` of `Specimen` is of greatest interest for the end user.
 """
 from copy import deepcopy as copy
 from random import random
-from inspect import isfunction, signature
+from inspect import signature
 from node import Node, OutputNode, InputNode
 
 
@@ -45,20 +45,8 @@ class Specimen():
             mutation_num (int) : number of genes that can be mutated in a singe
                                  application of the mutation operator.
         """
-        # TODO: implement exceptions
-        if inputs_num < 1 or outputs_num < 1 or nodes_num < 1:
-            raise ValueError('Wrong number of inputs and/or outputs.')
-        for function in function_table:
-            if not isfunction(function) or isinstance(function) == type(print):
-                raise Exception
         self.function_table = function_table
-        if mutation_prob > 1 or mutation_prob < 0:
-            raise ValueError(
-                'Probability of mutation must be between 1 and 0.')
         self.mutation_prob = mutation_prob
-        if mutation_num > nodes_num:
-            raise ValueError(
-                'There cannot be more mutations than there are nodes.')
         self.mutation_num = mutation_num
         # Size of a single node is the maximum amount of args taken by functions
         # from function_table
@@ -86,7 +74,6 @@ class Specimen():
             Outputs of the specimen.
         """
         # TODO: Construct the outputs
-        self.inputs = inputs
         outputs = None
         return outputs
 

@@ -3,12 +3,11 @@
 The main interface is the `evolve` function which returns an instance of
 `Specimen` best fit to a given fit function.
 """
-from inspect import signature
+from inspect import signature, isfunction
 from specimen import Specimen
 
 
-
-def evolve(function_table, fit_function, inputs_num, outputs, **kwargs):
+def evolve(function_table, fit_function, inputs_num, outputs_num, **kwargs):
     """Evolve a `Specimen` according to the provided fit function.
 
     Args:
@@ -48,11 +47,30 @@ def evolve(function_table, fit_function, inputs_num, outputs, **kwargs):
     mutation_prob = kwargs.get('mutation_prob', 0.01)
     mutation_num = kwargs.get('mutation_num', 1)
 
+    # Handle incorrect user input
+    if inputs_num < 1 or int(inputs_num) != inputs_num:
+        raise ValueError('Wrong or non-integer number of inputs.')
+    if outputs_num < 1 or int(outputs_num) != outputs_num:
+        raise ValueError('Wrong or non-integer number of outputs.')
+    if nodes_num < 1 or int(nodes_num) != nodes_num:
+        raise ValueError('Wrong number of nodes.')
+    if generations_num < 1 or int(generations_num) != generations_num:
+        raise ValueError('Wrong or non-integer number of generations.')
+    if population_size < 1 or int(population_size) != population_size:
+        raise ValueError('Wrong or non-integer population size.')
+    if not isfunction(fit_function) or isinstance(fit_function) == type(print):
+        raise TypeError(f'Not a valid fit function: {fit_function}.')
+    if mutation_prob > 1 or mutation_prob < 0:
+        raise ValueError('Probability of mutation must be (0, 1).')
+    for function in function_table:
+        if not isfunction(function) or isinstance(function) == type(print):
+            raise TypeError(f'Not a valid function: {function}.')
+
     # Create a random population
     population = [
         Specimen(
             inputs_num,
-            outputs,
+            outputs_num,
             nodes_num,
             function_table,
             mutation_prob,

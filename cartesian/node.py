@@ -9,7 +9,7 @@ from inspect import signature
 
 
 class Node:
-    # TODO: contructor that take in a gene string
+    # TODO: contructor that takes in a gene string
     """The class `Node` is used as a container for a function and where it
     should take inputs from.
 
