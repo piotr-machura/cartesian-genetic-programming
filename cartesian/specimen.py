@@ -7,7 +7,7 @@ The method `outputs` of `Specimen` is of greatest interest for the end user.
 """
 from copy import deepcopy as copy
 from inspect import isfunction, signature
-from node import Node, OutputNode
+from node import Node, OutputNode, InputNode
 from random import sample, random
 
 
@@ -38,8 +38,6 @@ class Specimen():
         # TODO: implement exceptions
         if inputs_num < 1 or outputs_num < 1 or nodes_num < 1:
             raise Exception
-        self.inputs_num = inputs_num
-        self.outputs_num = outputs_num
         for function in function_table:
             if not (isfunction(function) or type(function) == type(print)):
                 raise Exception
@@ -54,12 +52,15 @@ class Specimen():
         # from fn_tab
         node_size = max(len(signature(function).parameters)
                         for function in self.function_table)
-        self.genotype = [
-            Node(self, i + inputs_num, node_size) for i in range(nodes_num)
+
+        self.genotype = [InputNode(self, i) for i in range(inputs_num)]
+
+        self.genotype += [
+            Node(self, node_size) for _ in range(nodes_num)
         ]
         # Add output nodes to the end
         self.genotype += [
-            OutputNode(self, i) for i in range(nodes_num, nodes_num + self.outputs_num)
+            OutputNode(self) for _ in range(outputs_num)
         ]
 
     def outputs(self, inputs):
@@ -72,6 +73,7 @@ class Specimen():
             Outputs of the specimen.
         """
         # TODO: Construct the outputs
+        self.inputs = inputs
         outputs = None
         return outputs
 
