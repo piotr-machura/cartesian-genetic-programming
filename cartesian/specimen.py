@@ -9,6 +9,7 @@ from copy import deepcopy as copy
 from random import random
 from inspect import isfunction, signature
 from node import Node, OutputNode, InputNode
+from random import sample, random
 
 
 class Specimen():
@@ -47,20 +48,21 @@ class Specimen():
         """
         # TODO: implement exceptions
         if inputs_num < 1 or outputs_num < 1 or nodes_num < 1:
-            raise Exception
+            raise ValueError('Wrong number of inputs and/or outputs.')
         for function in function_table:
             if not isfunction(function) or isinstance(function) == type(print):
                 raise Exception
         self.function_table = function_table
-        self.inputs = None
-        if mutation_prob > 1:
-            raise Exception
+        if mutation_prob > 1 or mutation_prob < 0:
+            raise ValueError(
+                "Probability of mutation must not be higher that\n 1 or lower than 0.")
         self.mutation_prob = mutation_prob
         if mutation_num > nodes_num:
-            raise Exception
+            raise ValueError('There cannot be more mutations than there are nodes.')
         self.mutation_num = mutation_num
         # Size of a single node is the maximum amount of args taken by functions
-        # from fnunction_table
+<<<<<<< HEAD
+        # from function_table
         node_size = max(
             len(signature(function).parameters)
             for function in self.function_table)
