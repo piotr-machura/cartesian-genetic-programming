@@ -9,7 +9,6 @@ from inspect import signature
 
 
 class Node:
-    # TODO: contructor that takes in a gene string
     """The class `Node` is used as a container for a function and where it
     should take inputs from.
 
@@ -54,11 +53,11 @@ class Node:
                 self.input_addresses))] = randint(0, self.index - 1)
 
     def to_raw(self):
-        """Encode into an array of integers for usage with `Specimen`'s
+        """Encode into a list of integers for usage with `Specimen`'s
         encoding method `to_raw()`.
 
         Returns:
-            Array of integers encoded as follows:
+            list of integers encoded as follows:
             [0] -> index of inner_function in the lookup table
             [...] -> contents of input_adresses
         """
@@ -68,7 +67,6 @@ class Node:
                 raw.append(index)
         raw += self.input_addresses
         return raw
-
 
 
 class OutputNode(Node):
@@ -101,7 +99,7 @@ class OutputNode(Node):
             0, self.index - 1)
 
     def to_raw(self):
-        """Encode into an array of integers for usage with `Specimen`'s
+        """Encode into a list of integers for usage with `Specimen`'s
         encoding method `to_raw()`.
 
         Returns:
@@ -130,8 +128,7 @@ class InputNode(Node):
         pass
 
     def to_raw(self):
-        """Return an empty array since this type of node should not be included
-        in the array produced by `Specimen.to_raw()`.
-        encoding method `to_raw()`.
+        """Return an empty list since this type of node should not be included
+        in the tuple produced by `Specimen.to_raw()`.
         """
         return list()
