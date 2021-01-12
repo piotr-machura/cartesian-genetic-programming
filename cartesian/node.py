@@ -1,10 +1,11 @@
 """Node module. *(heh)*
 
-Contains the class `Node` used as a container for a function and where it
-should take inputs from. Output nodes are impelemnted as nodes of size 1 and
-inner function of None.
+Contains the class `Node` and its subsidiaries used in a `Specimen`s genotype.
+`OutputNode`s are used to begin the recursive proces of gathering data and
+executing the algorithm encoded in the nodes. `InputNode`s are simply pointing
+that process to the data temporarily stored in `Specimen._input_data`.
 """
-from random import choice, randint, random, randrange
+from random import randint, random, randrange
 from inspect import signature
 
 
@@ -18,7 +19,8 @@ class Node:
     """
     def __init__(self, parent, index, size):
         self.parent = parent
-        self.inner_function = choice(parent.function_table)
+        self.inner_function_index = randint(0, len(parent.function_table - 1))
+        self.inner_function = parent.function_table[self.inner_function_index]
         self.index = index
         # Inputs can only be in front of the current node
         self.input_addresses = [randint(0, index - 1) for _ in range(size)]
@@ -33,7 +35,7 @@ class Node:
             Output of `inner_function`.
         """
         args = list()
-        # Only take as many args as the function needs
+        # Only take as many args as the inner function needs
         needed = len(signature(self.inner_function).parameters)
         for input_address in self.input_addresses[:needed]:
             # Recursively get the arguments
@@ -42,12 +44,15 @@ class Node:
         return self.inner_function(*args)
 
     def mutate(self):
-        """Randomly change the an input address or `innner_function`.
-        """
-        if random() < 1 / (len(self.input_addresses)):
-            last_function = self.inner_function
-            while self.inner_function == last_function:
-                self.inner_function = choice(self.parent.function_table)
+        """Randomly change the an input address or `innner_function`."""
+        if random() <= 1 / (len(self.input_addresses) + 1):
+            last_function_index = self.inner_function_index
+            while self.inner_function_index == last_function_index:
+                # Generate new index
+                self.inner_function_index = randint(
+                    0, len(self.parent.function_table - 1))
+            self.inner_function = self.parent.function_table[
+                self.inner_function_index]
         else:
             self.input_addresses[randrange(len(
                 self.input_addresses))] = randint(0, self.index - 1)
@@ -62,9 +67,7 @@ class Node:
             [...] -> contents of input_adresses
         """
         raw = list()
-        for index, function in enumerate(self.parent.function_table):
-            if self.inner_function == function:
-                raw.append(index)
+        raw.append(self.inner_function_index)
         raw += self.input_addresses
         return raw
 

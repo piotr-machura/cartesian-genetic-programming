@@ -32,8 +32,9 @@ def evolve(
         population_size (int) : per-generation population size (defalut 5).
         nodes_num (int) : number of nodes in the genome (default 100).
         mutation_prob (float) : probability of mutation (default 0.01).
-        max_mutations (int) : max number of nodes that can be mutated in a
-                              single generation (default 1).
+        max_mutations (int) : number of genes that can be mutated in a single
+                              application of the mutation operator (default 10).
+                              Set to None to remove the limit.
 
     Returns:
         A `Specimen` with desired fit OR the best fit after `gen` generations.
@@ -66,6 +67,9 @@ def evolve(
         raise TypeError(f'Not a valid fit function: {fit_function}.')
     if mutation_prob > 1 or mutation_prob < 0:
         raise ValueError('Probability must be between 0 and 1.')
+    if max_mutations is not None or max_mutations < 1 or int(
+            max_mutations) != max_mutations:
+        raise ValueError('Wrong or non-integer number of max mutations.')
     for function in function_table:
         if not isfunction(function) or isinstance(function, type(print)):
             msg = 'Your function table is invalid '

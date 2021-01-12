@@ -4,10 +4,15 @@ This module contains the class `Specimen` used for the internal evolutionary
 algorithm and returned to the user after the evolution concludes.
 
 The method `outputs` of `Specimen` is of greatest interest for the end user.
+
+The instance of `Specimen` can be converted into 2 special tuples: one
+containing the genotype (instance of `Specimen._Raw`) and another containing
+the function lookup table (instance of `Specimen._FunctionTable`). Those can
+then be used to fully reconstruct an instance of `Specimen`.
 """
 from copy import deepcopy
 from random import random
-from inspect import signature, isfunction
+from inspect import signature
 from node import Node, OutputNode, InputNode
 
 
@@ -18,7 +23,7 @@ class Specimen:
 
     Attributes:
         genotype (list) : list of nodes used to calculate the output.
-        function_table (tuple) : function lookup table.
+        function_table (Specimen._FunctionTable) : function lookup table.
         inputs_num (int) : number of input values taken by a specimen.
         outputs_num (int) : number of output values produced by a specimen.
         nodes_num (int) : number of gene nodes.
@@ -52,12 +57,13 @@ class Specimen:
             max_mutations (int) : number of genes that can be mutated in a singe
                                   application of the mutation operator.
         """
-        self.function_table = function_table
+        self.function_table = self._FunctionTable(function_table)
         self.mutation_prob = mutation_prob
         self.max_mutations = max_mutations
         self.inputs_num = inputs_num
         self.outputs_num = outputs_num
         self.nodes_num = nodes_num
+        self._input_data = None    # For temporarily storing input data
         self.fit = None
         # Only the initial population is created by this constructor
         self.generation = 0
@@ -68,15 +74,16 @@ class Specimen:
             len(signature(function).parameters)
             for function in self.function_table)
 
+        # Contruct the genotype
         self.genotype = [InputNode(self, i, i) for i in range(inputs_num)]
+        nodes_start = self.inputs_num
         self.genotype += [
-            Node(self, i + inputs_num, node_size) for i in range(nodes_num)
+            Node(self, nodes_start, node_size) for i in range(nodes_num)
         ]
+        outputs_start = nodes_start + self.nodes_num
         self.genotype += [
-            OutputNode(self, i + inputs_num + nodes_num)
-            for i in range(outputs_num)
+            OutputNode(self, outputs_start) for i in range(outputs_num)
         ]
-        self._input_data = None    # For temporarily storing input data
 
     def outputs(self, input_data):
         """Generate output from input.
@@ -85,12 +92,11 @@ class Specimen:
             input_data (tuple) : input values from which outputs are obtained.
 
         Returns:
-            Outputs of the algorithm encoded in the genotype.
+            Tuple of outputs of the algorithm encoded in the genotype.
         """
         self._input_data = input_data
-        outputs = [
-            node.calculate() for node in self.genotype[self.outputs_num:]
-        ]
+        outputs_start = self.inputs_num + self.nodes_num
+        outputs = [node.calculate() for node in self.genotype[outputs_start:]]
         self._input_data = None    # No need to keep it around after we're done
         return tuple(outputs)
 
@@ -105,17 +111,30 @@ class Specimen:
         offspring = deepcopy(self)
         offspring.fit = None    # Reset offsprings' fit
         mutations = 0
-        # Do not mutate the input nodes
+        max_mutations = offspring.max_mutations
+        # Do not waste mutations on input nodes
         for node in offspring.genotype[offspring.inputs_num:]:
-            if mutations < offspring.max_mutations:
+            if max_mutations is None or mutations < max_mutations:
                 if random() <= offspring.mutation_prob:
                     mutations += 1
                     node.mutate()
+            else:
+                break
         offspring.generation += 1
         offspring.total_mutations += mutations
         return offspring
 
-    class _RawSpecimen(tuple):
+    class _FunctionTable(tuple):
+        """This is a special tuple used to store the function lookup table.
+        Using this reduces the probability that the function table will be
+        accidentally messed up."""
+
+    # NUMBER ARRAY REPRESENTATION
+    # ---------------------------
+    # This is a section dedicated to converting the specimen to/from a pair
+    # of tuples.
+
+    class _Raw(tuple):
         """This is a special tuple returned by the `to_raw()` class method which
         can be rebuilt into an instance of `Specimen` using `from_raw()`.
         """
@@ -130,7 +149,10 @@ class Specimen:
         decoding the tuple returned by this function.
 
         Returns:
-            Instance of `RawSpecimen`, a tuple of integers (or floats)
+            A tuple of (`Specimen._Raw`, `Specimen._FunctionTable`).
+
+            `_FunctionTable` is a tuple with functions used by the encoded
+            algorithm. `_Raw` is a tuple of integers (or floats where necessary)
             constructed as follows:
             [0] -> inputs_num
             [1] -> outputs_num
@@ -156,33 +178,28 @@ class Specimen:
         raw.append(self.total_mutations)
         for node in self.genotype:
             raw += node.to_raw()
-        return self._RawSpecimen(raw)
+        return self._Raw(raw), self.function_table
 
     @classmethod
     def from_raw(cls, raw_specimen, function_table):
-        """Reconstruct the specimen from a tuple previously generated by
-        the method `to_raw()`.
+        """Reconstruct the specimen from the `Specimen._Raw` and
+        `Specimen._FunctionTable` generated by the method `to_raw()`.
 
         **WARNING:** If you have tampered with the raw tuple OR the function
         table in any way expect this to (at best) generate random garbage, or
         (more likely) not work at all.
 
         Args:
-            raw_specimen (Specimen._RawSpecimen) : special tuple generated
-                                                   by to_raw().
-            function_table (tuple) : function lookup table.
+            raw_specimen (Specimen._Raw) : special tuple generated by to_raw().
+            function_table (Specimen._FunctionTable) : function lookup table.
 
         Returns:
             A reconstructed instance of `Specimen` ready to be used.
         """
-        if isinstance(raw_specimen, cls._RawSpecimen):
-            raise TypeError(
-                f'Cannot reconstruct a Specimen from this: {raw_specimen}.')
-        for function in function_table:
-            if not isfunction(function) or isinstance(function, type(print)):
-                msg = 'Your function table is invalid '
-                msg += f'(not a valid function: {function}).'
-                raise TypeError(msg)
+        if not isinstance(raw_specimen, cls._Raw):
+            raise TypeError('Cannot reconstruct a Specimen from arguments.')
+        if not isinstance(function_table, cls._FunctionTable):
+            raise TypeError('Cannot reconstruct a Specimen from arguments.')
         instance = cls(
             inputs_num=raw_specimen[0],
             outputs_num=raw_specimen[1],
