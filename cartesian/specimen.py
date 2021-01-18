@@ -124,6 +124,18 @@ class Specimen:
         offspring.total_mutations += mutations
         return offspring
 
+    def assign_fit(self, fit_function):
+        """Assign fit based on the fit_function. This is used for concurency
+        reasons (as target for the `threading.Thread` class).
+
+        Args:
+            fit_function (callable) : fit function to pipe outputs through.
+        """
+
+        self.fit = fit_function(self.outputs)
+        if self.fit is None:
+            raise TypeError('Fit function returned None.')
+
     class _FunctionTable(tuple):
         """This is a special tuple used to store the function lookup table.
         Using this reduces the probability that the function table will be

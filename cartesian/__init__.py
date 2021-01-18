@@ -4,6 +4,7 @@ The main interface is the `evolve` function which returns an instance of
 `Specimen` best fit to a given fit function.
 """
 from inspect import signature, isfunction
+from threading import Thread
 from specimen import Specimen
 
 
@@ -93,13 +94,18 @@ def evolve(
 
     # Begin the process of evolution
     for _ in range(generations_num):
-        # Find a specimen as (or more) fit as the current parent
+        # Set up threads to assign fit in paralell
+        threads = [
+            Thread(target=specimen.assign_fit, args=(fit_function, ))
+            for specimen in population
+        ]
+        for thread in threads:
+            thread.start()
+        # Wait for all threads to complete before proceeding
+        for thread in threads:
+            thread.join()
+        # Find the specimen with fit >= parent fit
         for specimen in population:
-            # Provide a callable generating outputs from inputs and feed it to
-            # the user's fit function
-            specimen.fit = fit_function(specimen.outputs)
-            if specimen.fit is None:
-                raise TypeError('Fit function returned None.')
             if parent is None or parent.fit <= specimen.fit:
                 parent = specimen
             # If the desired fit has been acheived we can terminate
