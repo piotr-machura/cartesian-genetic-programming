@@ -19,11 +19,13 @@ class Node:
     """
     def __init__(self, parent, index, size):
         self.parent = parent
-        self.inner_function_index = randint(0, len(parent.function_table - 1))
+        self.inner_function_index = randint(0, len(parent.function_table) - 1)
         self.inner_function = parent.function_table[self.inner_function_index]
         self.index = index
         # Inputs can only be in front of the current node
-        self.input_addresses = [randint(0, index - 1) for _ in range(size)]
+        self.input_addresses = [
+            randint(0, self.index - 1) for _ in range(size)
+        ]
 
     def calculate(self):
         """Take input from `input_addresses` in 'parent.genotype'and return the
@@ -50,7 +52,8 @@ class Node:
             while self.inner_function_index == last_function_index:
                 # Generate new index
                 self.inner_function_index = randint(
-                    0, len(self.parent.function_table - 1))
+                    0,
+                    len(self.parent.function_table) - 1)
             self.inner_function = self.parent.function_table[
                 self.inner_function_index]
         else:
@@ -79,7 +82,7 @@ class OutputNode(Node):
         parent (Specimen) : the specimen to which the node belongs.
     """
     def __init__(self, parent, index):
-        super().__init__(parent, index, 1)
+        super().__init__(parent, index, size=1)
 
     def calculate(self):
         """Take input from `input_addresses` in 'parent.genotype'and return
@@ -88,12 +91,8 @@ class OutputNode(Node):
         Returns:
             Output of 'input_addresses'.
         """
-        args = list()
-        needed = len(self.input_addresses)
-        for input_address in self.input_addresses[:needed]:
-            # Recursively get the arguments
-            args.append(self.parent.genotype[input_address].calculate())
-        return args
+        adress = self.input_addresses[0]    # There is only one input adress
+        return self.parent.genotype[adress].calculate()
 
     def mutate(self):
         """Randomly change the input address.

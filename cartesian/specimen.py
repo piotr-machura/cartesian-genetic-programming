@@ -78,11 +78,11 @@ class Specimen:
         self.genotype = [InputNode(self, i, i) for i in range(inputs_num)]
         nodes_start = self.inputs_num
         self.genotype += [
-            Node(self, nodes_start, node_size) for i in range(nodes_num)
+            Node(self, nodes_start + i, node_size) for i in range(nodes_num)
         ]
         outputs_start = nodes_start + self.nodes_num
         self.genotype += [
-            OutputNode(self, outputs_start) for i in range(outputs_num)
+            OutputNode(self, outputs_start + i) for i in range(outputs_num)
         ]
 
     def outputs(self, input_data):
@@ -96,9 +96,9 @@ class Specimen:
         """
         self._input_data = input_data
         outputs_start = self.inputs_num + self.nodes_num
-        outputs = [node.calculate() for node in self.genotype[outputs_start:]]
+        out = [node.calculate() for node in self.genotype[outputs_start:]]
         self._input_data = None    # No need to keep it around after we're done
-        return tuple(outputs)
+        return tuple(out)
 
     def mutate(self):
         """Mutate into an offspring instance of `Specimen`.
