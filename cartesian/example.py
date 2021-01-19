@@ -51,7 +51,7 @@ if __name__ == '__main__':
         nodes_num=25,
         mutation_prob=0.05,
         generations_num=10000,
-        desired_fit=0.25,
+        desired_fit=1,
         max_mutations=None,
     )
     delta_t = time.time() - t_start
