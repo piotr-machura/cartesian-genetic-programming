@@ -10,11 +10,11 @@ def evolve(
     function_table,
     fit_function,
     inputs_num,
+    nodes_num,
     outputs_num,
     desired_fit=None,
     generations_num=100,
     population_size=5,
-    nodes_num=100,
     mutation_prob=0.01,
     max_mutations=None,
 ):
@@ -25,11 +25,11 @@ def evolve(
                                  from.
         fit_function (callable) : function evaluating fit, **see note below**.
         inputs_num (int) : number of input values taken by a specimen.
+        nodes_num (int) : number of nodes in the genome.
         outputs_num (int) : number of output values produced by a specimen.
         desired_fit (float) : terminate evolution if fit >= (default None).
         generations_num(int) : number of generations (default 100).
         population_size (int) : per-generation population size (defalut 5).
-        nodes_num (int) : number of nodes in the genome (default 100).
         mutation_prob (float) : probability of mutation (default 0.01).
         max_mutations (int) : maximum number of genes that can be mutated in
                               a single application of the mutation operator
@@ -71,9 +71,10 @@ def evolve(
         raise ValueError('Wrong or non-integer number of max mutations.')
     for function in function_table:
         if not isfunction(function) or isinstance(function, type(print)):
-            msg = 'Your function table is invalid '
-            msg += f'(not a valid function: {function}.'
-            raise TypeError(msg)
+            raise TypeError(
+                'Your function table is invalid ' +
+                f'(not a valid function: {function}.',
+            )
 
     # Create a random population
     population = [

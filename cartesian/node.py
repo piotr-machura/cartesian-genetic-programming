@@ -26,6 +26,7 @@ class Node:
         self.input_addresses = [
             randint(0, self.index - 1) for _ in range(size)
         ]
+        self._cached_data = None    # We will store calculated data here
 
     def calculate(self):
         """Take input from `input_addresses` in 'parent.genotype'and return the
@@ -36,6 +37,9 @@ class Node:
         Returns:
             Output of `inner_function`.
         """
+        if self._cached_data is not None:
+            # We have already made the calculations
+            return self._cached_data
         args = list()
         # Only take as many args as the inner function needs
         needed = len(signature(self.inner_function).parameters)
@@ -43,7 +47,8 @@ class Node:
             # Recursively get the arguments
             args.append(self.parent.genotype[input_address].calculate())
 
-        return self.inner_function(*args)
+        self._cached_data = self.inner_function(*args)
+        return self._cached_data
 
     def mutate(self):
         """Randomly change the an input address or `innner_function`."""

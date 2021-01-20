@@ -47,41 +47,43 @@ if __name__ == '__main__':
         function_table=function_table,
         fit_function=fit_modulo_2,
         inputs_num=3,
+        nodes_num=100,
         outputs_num=2,
-        nodes_num=25,
-        mutation_prob=0.05,
-        generations_num=10000,
         desired_fit=1,
-        max_mutations=None,
+        generations_num=10000,
+        mutation_prob=0.1,
     )
     delta_t = time.time() - t_start
     print('---------------------')
-    print('Evolution terminated.')
-    print(f'Achieved fit of {solution.fit}', end=' ')
-    print(f'after {solution.generation} generations', end=' ')
-    print(f'in {delta_t:.4} seconds.')
+    print(f'Evolution terminated (took {delta_t:.4} seconds).')
+    print(
+        f'Achieved fit of {solution.fit} ' +
+        f'after {solution.generation} generations ' +
+        f'and a total of {solution.total_mutations} mutations.',
+    )
     print('Try it out!')
     while True:
         try:
-            inp = int(input('Your number goes here -> '))
-            if inp > 7:
+            inp = int(input('Your 3-bit number -> '))
+            if not 0 <= inp <=7:
                 raise ValueError()
         except ValueError:
-            print('Only 3-bit integers allowed!')
+            print('Only 3-bit unsigned integers allowed!')
             continue
         except (KeyboardInterrupt, EOFError):
             print('\n---------------------')
             print('Goodbye!')
             sys.exit()
-        # Convert the number to bit array
+        # Convert the number to bit list
         inp_bits = [int(digit) for digit in bin(inp)[2:]]
         # Fill the front with 0s to always have 3 bits total
         while len(inp_bits) != 3:
             inp_bits.insert(0, False)
         result = solution.outputs(inp_bits)
-        print(f'The algorithm says {inp} modulo 3 is', end=' ')
+        print(f'It seems {inp} modulo 3 is', end=' ')
         print(result, end=' ')
         print('in binary and', end=' ')
+        # Bitshift magic to turn bit tuple into int
         result_int = 0
         for bit in result:
             result_int = (result_int << 1) | bit

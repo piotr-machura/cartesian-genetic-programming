@@ -95,9 +95,15 @@ class Specimen:
             Tuple of outputs of the algorithm encoded in the genotype.
         """
         self._input_data = input_data
+        # Clear the cache from nodes
+        for node in self.genotype:
+            node._cached_data = None    # pylint: disable=protected-access
         outputs_start = self.inputs_num + self.nodes_num
         out = [node.calculate() for node in self.genotype[outputs_start:]]
         self._input_data = None    # No need to keep it around after we're done
+        # Clear the cache from nodes again
+        for node in self.genotype:
+            node._cached_data = None    # pylint: disable=protected-access
         return tuple(out)
 
     def mutate(self):
