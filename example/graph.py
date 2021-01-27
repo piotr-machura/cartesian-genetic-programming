@@ -4,10 +4,14 @@ required to achieve fit of 1 depending on the chosen mutation probability.
 We will test every probability from 10% to 35% with step 2.5%.
 """
 from statistics import stdev, sqrt, mean
+from pathlib import Path
 from matplotlib import pyplot as plt
 from example import *
 
+FILEDIR = str(Path(__file__).parent.absolute())
+
 if __name__ == '__main__':
+    # Containers for data used for graphing
     avg_gens = list()
     avg_muts = list()
     err_gens = list()
@@ -16,6 +20,7 @@ if __name__ == '__main__':
     for prob in probabilities:
         gens = list()
         muts = list()
+        # We will calculate averages over 10 runs at every probability
         for i in range(10):
             solution = evolve(
                 function_table=FUNCTION_TABLE,
@@ -29,6 +34,7 @@ if __name__ == '__main__':
             )
             gens.append(solution.generation)
             muts.append(solution.total_mutations)
+        # Store averages in respective lists
         avg_gens.append(mean(gens))
         avg_muts.append(mean(muts))
         # Standard error is stdev/sqrt(N)
@@ -36,14 +42,13 @@ if __name__ == '__main__':
         err_muts.append(stdev(muts) / sqrt(10))
 
     # Save data to a text file
-    with open('./sample_data.txt', mode='w') as f:
+    with open(FILEDIR + '/data.txt', mode='w') as f:
         for i, prob in enumerate(probabilities):
             f.write(
                 f'{prob} {avg_gens[i]} {err_gens[i]} ' +
                 f'{avg_muts[i]} {err_muts[i]}\n')
 
-    # Draw a graph with matplotlib
-
+    # Draw graphs with pyplot
     _, ax1 = plt.subplots(figsize=(12, 5))
     ax1.set_ylabel('Generations')
     ax1.set_xlabel('Probability')
@@ -58,7 +63,7 @@ if __name__ == '__main__':
         capsize=5,
         color='black',
     )
-    plt.show()
+    plt.savefig(FILEDIR + '/gens.pdf')
 
     _, ax1 = plt.subplots(figsize=(12, 5))
     ax1.set_ylabel('Mutations')
@@ -74,4 +79,4 @@ if __name__ == '__main__':
         capsize=5,
         color='black',
     )
-    plt.show()
+    plt.savefig(FILEDIR + '/muts.pdf')
