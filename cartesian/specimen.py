@@ -36,6 +36,7 @@ class Specimen:
         total_mutations (int) : total number of mutations since the evolution
                                 started.
     """
+
     def __init__(
         self,
         inputs_num,
@@ -229,5 +230,20 @@ class Specimen:
         instance.fit = raw_specimen[5]
         instance.generation = raw_specimen[6]
         instance.total_mutations = raw_specimen[7]
-        # TODO: decode the nodes (do it here and not in the node classmethod)
+        raw_nodes = raw_specimen[8:]
+
+        for i in range(inputs_num):
+            instance.genotype += InputNode(instance, i, i)
+
+        for i in range(len(raw_nodes)):
+            if i >= len(raw_nodes) - instance.outputs_num:
+                new_output_node = OutputNode(instance, i)
+                new_output_node.input_addresses = raw_nodes[i]
+                instance.genotype += new_output_node
+            else:
+                new_node = Node(instance, i, len(raw_nodes[i][1]))
+                new_node.input_addresses = raw_nodes[i][1]
+                new_node.inner_function_index = raw_nodes[i][0]
+                new_node.inner_function = function_table[raw_nodes[i][0]]
+                instance.genotype += new_node
         return instance
