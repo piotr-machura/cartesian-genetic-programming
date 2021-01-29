@@ -10,10 +10,9 @@ containing the genotype (instance of `Specimen._Raw`) and another containing
 the function lookup table (instance of `Specimen._FunctionTable`). Those can
 then be used to fully reconstruct an instance of `Specimen`.
 """
-from inspect import isfunction
+from inspect import isfunction, signature
 from copy import deepcopy
 from random import random
-from inspect import signature
 from node import Node, OutputNode, InputNode
 
 
@@ -92,7 +91,7 @@ class Specimen:
         self.total_mutations = 0
         # Size of a single node is the maximum amount of args taken by functions
         # from function_table
-        self.node_size = max(
+        node_size = max(
             len(signature(function).parameters)
             for function in self.function_table)
 
@@ -100,7 +99,7 @@ class Specimen:
         self.genotype = [InputNode(self, i, i) for i in range(inputs_num)]
         nodes_start = self.inputs_num
         self.genotype += [
-            Node(self, nodes_start + i) for i in range(nodes_num)
+            Node(self, nodes_start + i, node_size) for i in range(nodes_num)
         ]
         outputs_start = nodes_start + self.nodes_num
         self.genotype += [
@@ -200,7 +199,6 @@ class Specimen:
             ['nodes_num'] -> number of nodes (int)
             ['mutation_prob'] -> probability of mutation (float)
             ['max_mutations'] -> max. number of mutations in a single application of the mutation operator (int)
-            ['node_size'] -> size of a node (int)
             ['fit'] -> fitness (float OR None if not convertible to float)
             ['generation'] -> generation (int)
             ['total_mutations'] -> number of mutations that happened (int)
@@ -210,11 +208,10 @@ class Specimen:
         """
         raw = dict()
         raw['inputs_num'] = self.inputs_num
-        raw['outputs_num'] = outputs_num
+        raw['outputs_num'] = self.outputs_num
         raw['nodes_num'] = self.nodes_num
         raw['mutation_prob'] = self.mutation_prob
         raw['max_mutations'] = self.max_mutations
-        raw['node_size'] = self.node_size
         try:
             raw['fit'] = float(self.fit)
         except ValueError:    # The information about the fit is lost
@@ -222,10 +219,8 @@ class Specimen:
         raw['generation'] = self.generation
         raw['total_mutations'] = self.total_mutations
         raw['genotype'] = dict()
-        raw['genotype']['function_nodes'] = [node.to_raw()
-                                             for node in self.genotype[self.inputs_num:-self.outputs_num]]
-        raw['genotype']['output_nodes'] = [node.to_raw()
-                                           for node in self.genotype[self.outputs_num:]]
+        raw['genotype']['function_nodes'] = tuple([node.to_raw() for node in self.genotype[self.inputs_num:-self.outputs_num]])
+        raw['genotype']['output_nodes'] = tuple([node.to_raw() for node in self.genotype[self.outputs_num:]])
         return self._Raw(raw), self.function_table
 
     @ classmethod
@@ -259,23 +254,23 @@ class Specimen:
         instance.fit = raw_specimen['fit']
         instance.generation = raw_specimen['generation']
         instance.total_mutations = raw_specimen['total_mutations']
-        instance.node_size = raw_specimen['node_size']
-
-        raw_outputs = raw_specimen[-instance.outputs_num]
 
         for i in range(0, instance.inputs_num):
             instance.genotype += InputNode(instance, i, i)
 
         index = instance.inputs_num
         for raw_node in raw_specimen['genotype']['function_nodes']:
-            node = Node(instance, index)
-            node.inner_function_index, node.input_addresses = raw_node
+            node = Node(instance, index, len(raw_node[1]))
+            node.inner_function_index = raw_node[0]
+            node.input_addresses = list(raw_node[1])
             node.inner_function = instance.function_table[node.inner_function_index]
+            instance.genotype+=node
             index += 1
 
         for raw_output_node in raw_specimen['genotype']['output_nodes']:
             node = OutputNode(instance, index)
-            node.input_addresses = raw_node
+            node.input_addresses = list(raw_output_node)
+            instance.genotype+=node
             index += 1
 
         return instance

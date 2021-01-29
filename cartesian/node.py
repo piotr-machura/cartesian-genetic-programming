@@ -18,14 +18,14 @@ class Node:
         size (int) : amount of inputs this node accepts.
     """
 
-    def __init__(self, parent, index):
+    def __init__(self, parent, index, size):
         self.parent = parent
         self.inner_function_index = randint(0, len(parent.function_table) - 1)
         self.inner_function = parent.function_table[self.inner_function_index]
         self.index = index
         # Inputs can only be in front of the current node
         self.input_addresses = [
-            randint(0, self.index - 1) for _ in range(parent.node_size)
+            randint(0, self.index - 1) for _ in range(size)
         ]
         self._cached_data = None    # We will store calculated data here
 
@@ -76,7 +76,7 @@ class Node:
             [1] -> contents of input_adresses
         """
 
-        return [self.inner_function_index, self.input_addresses]
+        return (self.inner_function_index, tuple(self.input_addresses))
 
 
 class OutputNode(Node):
@@ -112,7 +112,7 @@ class OutputNode(Node):
         Returns:
             self.input_addresses (since there is no inner_function to encode) as tuple
         """
-        return self.input_addresses
+        return tuple(self.input_addresses)
 
 
 class InputNode(Node):
