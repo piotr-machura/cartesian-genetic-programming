@@ -1,9 +1,10 @@
 """This module contains the `evolve` function used to obtain an instance
 of `Specimen` fit to the given fit function.
 """
-from inspect import isfunction
+
 from threading import Thread
 from specimen import Specimen
+from inspect import isfunction
 
 
 def evolve(
@@ -51,30 +52,13 @@ def evolve(
     comparable and never `None`.
     """
 
-    # Handle incorrect user input
-    if inputs_num < 1 or int(inputs_num) != inputs_num:
-        raise ValueError('Wrong or non-integer number of inputs.')
-    if outputs_num < 1 or int(outputs_num) != outputs_num:
-        raise ValueError('Wrong or non-integer number of outputs.')
-    if nodes_num < 1 or int(nodes_num) != nodes_num:
-        raise ValueError('Wrong nor non-integer umber of nodes.')
+    # Handle incorrect input
     if generations_num < 1 or int(generations_num) != generations_num:
         raise ValueError('Wrong or non-integer number of generations.')
     if population_size < 1 or int(population_size) != population_size:
         raise ValueError('Wrong or non-integer population size.')
     if not isfunction(fit_function) or isinstance(fit_function, type(print)):
         raise TypeError(f'Not a valid fit function: {fit_function}.')
-    if mutation_prob > 1 or mutation_prob < 0:
-        raise ValueError('Probability must be between 0 and 1.')
-    if max_mutations is not None and (max_mutations < 1
-                                      or int(max_mutations) != max_mutations):
-        raise ValueError('Wrong or non-integer number of max mutations.')
-    for function in function_table:
-        if not isfunction(function) or isinstance(function, type(print)):
-            raise TypeError(
-                'Your function table is invalid ' +
-                f'(not a valid function: {function}.',
-            )
 
     # Create a random population
     population = [

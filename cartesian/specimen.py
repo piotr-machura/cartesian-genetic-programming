@@ -10,6 +10,7 @@ containing the genotype (instance of `Specimen._Raw`) and another containing
 the function lookup table (instance of `Specimen._FunctionTable`). Those can
 then be used to fully reconstruct an instance of `Specimen`.
 """
+from inspect import isfunction
 from copy import deepcopy
 from random import random
 from inspect import signature
@@ -58,6 +59,26 @@ class Specimen:
             max_mutations (int) : number of genes that can be mutated in a singe
                                   application of the mutation operator.
         """
+
+        # Handle incorrect arguments
+        if inputs_num < 1 or int(inputs_num) != inputs_num:
+            raise ValueError('Wrong or non-integer number of inputs.')
+        if outputs_num < 1 or int(outputs_num) != outputs_num:
+            raise ValueError('Wrong or non-integer number of outputs.')
+        if nodes_num < 1 or int(nodes_num) != nodes_num:
+            raise ValueError('Wrong nor non-integer umber of nodes.')
+        if mutation_prob > 1 or mutation_prob < 0:
+            raise ValueError('Probability must be between 0 and 1.')
+        if max_mutations is not None and (max_mutations < 1
+                                          or int(max_mutations) != max_mutations):
+            raise ValueError('Wrong or non-integer number of max mutations.')
+        for function in function_table:
+            if not isfunction(function) or isinstance(function, type(print)):
+                raise TypeError(
+                    'Your function table is invalid ' +
+                    f'(not a valid function: {function}.',
+                )
+
         self.function_table = self._FunctionTable(function_table)
         self.mutation_prob = mutation_prob
         self.max_mutations = max_mutations
@@ -71,7 +92,7 @@ class Specimen:
         self.total_mutations = 0
         # Size of a single node is the maximum amount of args taken by functions
         # from function_table
-        node_size = max(
+        self.node_size = max(
             len(signature(function).parameters)
             for function in self.function_table)
 
@@ -79,7 +100,7 @@ class Specimen:
         self.genotype = [InputNode(self, i, i) for i in range(inputs_num)]
         nodes_start = self.inputs_num
         self.genotype += [
-            Node(self, nodes_start + i, node_size) for i in range(nodes_num)
+            Node(self, nodes_start + i) for i in range(nodes_num)
         ]
         outputs_start = nodes_start + self.nodes_num
         self.genotype += [
@@ -95,6 +116,8 @@ class Specimen:
         Returns:
             Tuple of outputs of the algorithm encoded in the genotype.
         """
+        if len(input_data) != self.inputs_num:
+            raise IndexError("Wrong number of inputs.")
         self._input_data = input_data
         # Clear the cache from nodes
         for node in self.genotype:
@@ -171,35 +194,41 @@ class Specimen:
             A tuple of (`Specimen._Raw`, `Specimen._FunctionTable`).
 
             `_FunctionTable` is a tuple with functions used by the encoded
-            algorithm. `_Raw` is a tuple of integers (or floats where necessary)
-            constructed as follows:
-            [0] -> inputs_num
-            [1] -> outputs_num
-            [2] -> nodes_num
-            [3] -> mutation_prob (float)
-            [4] -> max_mutations
-            [5] -> fit (float OR None if not convertible to float)
-            [6] -> generation
-            [7] -> total_mutations
-            [...] -> nodes as sequences of integers, encoded by `Node.to_raw()`
+            algorithm. `_Raw` is a dictionary constructed as follows:
+            ['inputs_num'] -> number of inputs (int)
+            ['outputs_num'] -> number of outputs (int)
+            ['nodes_num'] -> number of nodes (int)
+            ['mutation_prob'] -> probability of mutation (float)
+            ['max_mutations'] -> max. number of mutations in a single application of the mutation operator (int)
+            ['node_size'] -> size of a node (int)
+            ['fit'] -> fitness (float OR None if not convertible to float)
+            ['generation'] -> generation (int)
+            ['total_mutations'] -> number of mutations that happened (int)
+            ['genotype'] -> a dictionary constructed as folows:
+                ['function_nodes'] -> a list of lists representing function nodes, encoded by 'Node.to_raw()'
+                ['output_nodes'] -> -> a list of lists representing output nodes, encoded by 'Node.to_raw()'
         """
-        raw = list()
-        raw.append(self.inputs_num)
-        raw.append(self.outputs_num)
-        raw.append(self.nodes_num)
-        raw.append(self.mutation_prob)
-        raw.append(self.max_mutations)
+        raw = dict()
+        raw['inputs_num'] = self.inputs_num
+        raw['outputs_num'] = outputs_num
+        raw['nodes_num'] = self.nodes_num
+        raw['mutation_prob'] = self.mutation_prob
+        raw['max_mutations'] = self.max_mutations
+        raw['node_size'] = self.node_size
         try:
-            raw.append(float(self.fit))
+            raw['fit'] = float(self.fit)
         except ValueError:    # The information about the fit is lost
-            raw.append(None)
-        raw.append(self.generation)
-        raw.append(self.total_mutations)
-        for node in self.genotype:
-            raw += node.to_raw()
+            raw['fit'] = None
+        raw['generation'] = self.generation
+        raw['total_mutations'] = self.total_mutations
+        raw['genotype'] = dict()
+        raw['genotype']['function_nodes'] = [node.to_raw()
+                                             for node in self.genotype[self.inputs_num:-self.outputs_num]]
+        raw['genotype']['output_nodes'] = [node.to_raw()
+                                           for node in self.genotype[self.outputs_num:]]
         return self._Raw(raw), self.function_table
 
-    @classmethod
+    @ classmethod
     def from_raw(cls, raw_specimen, function_table):
         """Reconstruct the specimen from the `Specimen._Raw` and
         `Specimen._FunctionTable` generated by the method `to_raw()`.
@@ -220,30 +249,33 @@ class Specimen:
         if not isinstance(function_table, cls._FunctionTable):
             raise TypeError('Cannot reconstruct a Specimen from arguments.')
         instance = cls(
-            inputs_num=raw_specimen[0],
-            outputs_num=raw_specimen[1],
-            nodes_num=raw_specimen[2],
+            inputs_num=raw_specimen['inputs_num'],
+            outputs_num=raw_specimen['outputs_num'],
+            nodes_num=raw_specimen['nodes_num'],
             function_table=function_table,
-            mutation_prob=raw_specimen[3],
-            max_mutations=raw_specimen[4],
+            mutation_prob=raw_specimen['mutation_prob'],
+            max_mutations=raw_specimen['max_mutations'],
         )
-        instance.fit = raw_specimen[5]
-        instance.generation = raw_specimen[6]
-        instance.total_mutations = raw_specimen[7]
-        raw_nodes = raw_specimen[8:]
+        instance.fit = raw_specimen['fit']
+        instance.generation = raw_specimen['generation']
+        instance.total_mutations = raw_specimen['total_mutations']
+        instance.node_size = raw_specimen['node_size']
 
-        for i in range(inputs_num):
+        raw_outputs = raw_specimen[-instance.outputs_num]
+
+        for i in range(0, instance.inputs_num):
             instance.genotype += InputNode(instance, i, i)
 
-        for i in range(len(raw_nodes)):
-            if i >= len(raw_nodes) - instance.outputs_num:
-                new_output_node = OutputNode(instance, i)
-                new_output_node.input_addresses = raw_nodes[i]
-                instance.genotype += new_output_node
-            else:
-                new_node = Node(instance, i, len(raw_nodes[i][1]))
-                new_node.input_addresses = raw_nodes[i][1]
-                new_node.inner_function_index = raw_nodes[i][0]
-                new_node.inner_function = function_table[raw_nodes[i][0]]
-                instance.genotype += new_node
+        index = instance.inputs_num
+        for raw_node in raw_specimen['genotype']['function_nodes']:
+            node = Node(instance, index)
+            node.inner_function_index, node.input_addresses = raw_node
+            node.inner_function = instance.function_table[node.inner_function_index]
+            index += 1
+
+        for raw_output_node in raw_specimen['genotype']['output_nodes']:
+            node = OutputNode(instance, index)
+            node.input_addresses = raw_node
+            index += 1
+
         return instance
