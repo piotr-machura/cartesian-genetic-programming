@@ -17,7 +17,6 @@ class Node:
         parent (Specimen) : the specimen to which the node belongs.
         size (int) : amount of inputs this node accepts.
     """
-
     def __init__(self, parent, index, size):
         self.parent = parent
         self.inner_function_index = randint(0, len(parent.function_table) - 1)
@@ -67,8 +66,8 @@ class Node:
                 self.input_addresses))] = randint(0, self.index - 1)
 
     def to_raw(self):
-        """Encode into a tuple of integer and a list of integers for usage with `Specimen`'s
-        encoding method `to_raw()`.
+        """Encode into a tuple of integers and a list of integers for usage
+        with `Specimen`'s encoding method `to_raw()`.
 
         Returns:
             tuple of encoded as follows:
@@ -85,7 +84,6 @@ class OutputNode(Node):
     Attributes:
         parent (Specimen) : the specimen to which the node belongs.
     """
-
     def __init__(self, parent, index):
         super().__init__(parent, index, size=1)
 
@@ -110,7 +108,8 @@ class OutputNode(Node):
         encoding method `to_raw()`.
 
         Returns:
-            self.input_addresses (since there is no inner_function to encode) as tuple
+            tuple of self.input_addresses (since there is no inner_function
+            to encode).
         """
         return tuple(self.input_addresses)
 
@@ -123,14 +122,13 @@ class InputNode(Node):
         parent (Specimen) : the specimen to which the node belongs.
         input_index (int) : index of the program input.
     """
-
     def __init__(self, parent, index, input_index):
         super().__init__(parent, index, 0)
         self.input_index = input_index
 
     def calculate(self):
         """Take input from parent and pass them down."""
-        return self.parent._input_data[self.input_index]  # pylint: disable=protected-access
+        return self.parent._input_data[self.input_index]    # pylint: disable=protected-access
 
     def mutate(self):
         pass

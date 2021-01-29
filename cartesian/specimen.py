@@ -36,7 +36,6 @@ class Specimen:
         total_mutations (int) : total number of mutations since the evolution
                                 started.
     """
-
     def __init__(
         self,
         inputs_num,
@@ -68,8 +67,8 @@ class Specimen:
             raise ValueError('Wrong nor non-integer umber of nodes.')
         if mutation_prob > 1 or mutation_prob < 0:
             raise ValueError('Probability must be between 0 and 1.')
-        if max_mutations is not None and (max_mutations < 1
-                                          or int(max_mutations) != max_mutations):
+        if max_mutations is not None and (max_mutations < 1 or
+                                          int(max_mutations) != max_mutations):
             raise ValueError('Wrong or non-integer number of max mutations.')
         for function in function_table:
             if not isfunction(function) or isinstance(function, type(print)):
@@ -78,7 +77,7 @@ class Specimen:
                     f'(not a valid function: {function}.',
                 )
 
-        self.function_table = self._FunctionTable(function_table)
+        self.function_table = self.FunctionTable(function_table)
         self.mutation_prob = mutation_prob
         self.max_mutations = max_mutations
         self.inputs_num = inputs_num
@@ -165,32 +164,31 @@ class Specimen:
         if self.fit is None:
             raise TypeError('Fit function returned None.')
 
-    class _FunctionTable(tuple):
+    class FunctionTable(tuple):
         """This is a special tuple used to store the function lookup table.
         Using this reduces the probability that the function table will be
         accidentally messed up."""
 
-    # NUMBER ARRAY REPRESENTATION
+    # DICIIONARY REPRESENTATION
     # ---------------------------
-    # This is a section dedicated to converting the specimen to/from a pair
-    # of tuples.
 
-    class _Raw(tuple):
-        """This is a special tuple returned by the `to_raw()` class method which
-        can be rebuilt into an instance of `Specimen` using `from_raw()`.
+    class Raw(dict):
+        """This is a special dictionary returned by the `to_raw()` class method
+        which can be rebuilt into an instance of `Specimen` using `from_raw()`.
         """
 
     def to_raw(self):
-        """Encode most of the information about the specimen as a special tuple
-        of integers (or floats when necessary).
+        """Encode most of the information about the specimen as a special
+        dictionary (ex. to save in a JSON file).
 
-        **WARNING:** This tuple doesn't contain any information about the
-        `function_table`, which is **necessary** to reconstruct a specimen. Make
-        sure you keep it around and **do not tamper with it** if you plan on
-        decoding the tuple returned by this function.
+        **WARNING:** This dictionary doesn't contain any information about the
+        `function_table`, which is also returned by this function and
+        **necessary** to reconstruct a specimen. Make sure you keep it around
+        and **do not tamper with it** if you plan on decoding the `Specimen.Raw`
+        returned by this function.
 
         Returns:
-            A tuple of (`Specimen._Raw`, `Specimen._FunctionTable`).
+            A tuple of (`Specimen.Raw`, `Specimen.FunctionTable`).
 
             `_FunctionTable` is a tuple with functions used by the encoded
             algorithm. `_Raw` is a dictionary constructed as follows:
@@ -198,13 +196,16 @@ class Specimen:
             ['outputs_num'] -> number of outputs (int)
             ['nodes_num'] -> number of nodes (int)
             ['mutation_prob'] -> probability of mutation (float)
-            ['max_mutations'] -> max. number of mutations in a single application of the mutation operator (int)
+            ['max_mutations'] -> max. number of mutations in a single
+                                 application of the mutation operator (int)
             ['fit'] -> fitness (float OR None if not convertible to float)
             ['generation'] -> generation (int)
             ['total_mutations'] -> number of mutations that happened (int)
             ['genotype'] -> a dictionary constructed as folows:
-                ['function_nodes'] -> a list of lists representing function nodes, encoded by 'Node.to_raw()'
-                ['output_nodes'] -> -> a list of lists representing output nodes, encoded by 'Node.to_raw()'
+                ['function_nodes'] -> a tuple of tuples representing function
+                                      nodes, encoded by 'Node.to_raw()'
+                ['output_nodes'] -> -> a tuple of tuples representing output
+                                       nodes, encoded by 'Node.to_raw()'
         """
         raw = dict()
         raw['inputs_num'] = self.inputs_num
@@ -219,11 +220,16 @@ class Specimen:
         raw['generation'] = self.generation
         raw['total_mutations'] = self.total_mutations
         raw['genotype'] = dict()
-        raw['genotype']['function_nodes'] = tuple([node.to_raw() for node in self.genotype[self.inputs_num:-self.outputs_num]])
-        raw['genotype']['output_nodes'] = tuple([node.to_raw() for node in self.genotype[self.outputs_num:]])
-        return self._Raw(raw), self.function_table
+        raw['genotype']['function_nodes'] = tuple(
+            [
+                node.to_raw()
+                for node in self.genotype[self.inputs_num:-self.outputs_num]
+            ])
+        raw['genotype']['output_nodes'] = tuple(
+            [node.to_raw() for node in self.genotype[self.outputs_num:]])
+        return self.Raw(raw), self.function_table
 
-    @ classmethod
+    @classmethod
     def from_raw(cls, raw_specimen, function_table):
         """Reconstruct the specimen from the `Specimen._Raw` and
         `Specimen._FunctionTable` generated by the method `to_raw()`.
@@ -233,15 +239,15 @@ class Specimen:
         (more likely) not work at all.
 
         Args:
-            raw_specimen (Specimen._Raw) : special tuple generated by to_raw().
-            function_table (Specimen._FunctionTable) : function lookup table.
+            raw_specimen (Specimen.Raw) : special tuple generated by to_raw().
+            function_table (Specimen.FunctionTable) : function lookup table.
 
         Returns:
             A reconstructed instance of `Specimen` ready to be used.
         """
-        if not isinstance(raw_specimen, cls._Raw):
+        if not isinstance(raw_specimen, cls.Raw):
             raise TypeError('Cannot reconstruct a Specimen from arguments.')
-        if not isinstance(function_table, cls._FunctionTable):
+        if not isinstance(function_table, cls.FunctionTable):
             raise TypeError('Cannot reconstruct a Specimen from arguments.')
         instance = cls(
             inputs_num=raw_specimen['inputs_num'],
@@ -255,7 +261,7 @@ class Specimen:
         instance.generation = raw_specimen['generation']
         instance.total_mutations = raw_specimen['total_mutations']
 
-        for i in range(0, instance.inputs_num):
+        for i in range(instance.inputs_num):
             instance.genotype += InputNode(instance, i, i)
 
         index = instance.inputs_num
@@ -263,14 +269,15 @@ class Specimen:
             node = Node(instance, index, len(raw_node[1]))
             node.inner_function_index = raw_node[0]
             node.input_addresses = list(raw_node[1])
-            node.inner_function = instance.function_table[node.inner_function_index]
-            instance.genotype+=node
+            node.inner_function = instance.function_table[
+                node.inner_function_index]
+            instance.genotype += node
             index += 1
 
         for raw_output_node in raw_specimen['genotype']['output_nodes']:
             node = OutputNode(instance, index)
             node.input_addresses = list(raw_output_node)
-            instance.genotype+=node
+            instance.genotype += node
             index += 1
 
         return instance

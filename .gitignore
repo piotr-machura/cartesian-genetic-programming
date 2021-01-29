@@ -3,5 +3,5 @@ tags
 __pycache__
 .vscode
 genwindow.py
-sample_data.txt
+data.txt
 *.pdf
