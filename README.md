@@ -3,7 +3,8 @@ This is an implementation of the cartesian genetic programming paradigm written 
 
 It was created as a semester-long assignment for our science labs under the guidance of dr Maciej Mrowiński.
 
-For basic usage see the appropriate docstrings.
+For basic usage see the appropriate docstrings. Run the interactive example with `python interactive.py` from within the
+`example` directory.
 
 ## Authors
 [Piotr Machura](https://github.com/piotr-machura)

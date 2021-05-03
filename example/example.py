@@ -34,11 +34,11 @@ def fit_modulo_2(gen_outputs):
 
 
 FUNCTION_TABLE = (
-    lambda x: int(x),    # BUFFOR
-    lambda x, y: int(x and y),    # AND
-    lambda x, y: int(x or y),    # OR
-    lambda x, y: int(x != y),    # XOR
-    lambda x: int(not x),    # NOT
+    lambda x: x,    # BUFFOR
+    lambda x, y: x & y,    # AND
+    lambda x, y: x | y,    # OR
+    lambda x, y: x ^ y,    # XOR
+    lambda x: ~x,    # NOT
 )
 
 INPUTS_NUM = 3
